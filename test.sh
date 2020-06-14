@@ -175,7 +175,7 @@ EOF
 	systemctl stop nginx
 	sleep 5
 	#申请https证书
-	mkdir /usr/src/trojan-cert /usr/src/trojan-temp
+	mkdir /usr/src/trojan-cert 
 	curl https://get.acme.sh | sh
 	~/.acme.sh/acme.sh  --issue  -d $your_domain  --standalone
     	~/.acme.sh/acme.sh  --installcert  -d  $your_domain   \
@@ -187,6 +187,7 @@ EOF
 	#wget https://github.com/trojan-gfw/trojan/releases/download/v1.13.0/trojan-1.13.0-linux-amd64.tar.xz
 	wget https://api.github.com/repos/trojan-gfw/trojan/releases/latest -O latest-trojan
 	latest_version=`grep tag_name latest-trojan| awk -F '[:,"v]' '{print $6}'`
+	echo "trojan-$(latest_version)" > /usr/src/trojan/trojan_version
 	wget https://github.com/trojan-gfw/trojan/releases/download/v${latest_version}/trojan-${latest_version}-linux-amd64.tar.xz
 	tar xf trojan-${latest_version}-linux-amd64.tar.xz   && rm -rf latest-trojan trojan-${latest_version}-linux-amd64.tar.xz
 	trojan_passwd=$(cat /dev/urandom | head -1 | md5sum | head -c 8)
