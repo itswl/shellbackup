@@ -171,7 +171,7 @@ EOF
 	wget https://github.com/itswl/itswl.github.io/archive/master.zip > /dev/null 2>&1 
     	unzip master.zip  > /dev/null 2>&1 
 	mv itswl*/* ./ && rm -rf itswl*  master.zip 
-	wget -N --no-check-certificate "https://raw.githubusercontent.com/itswl/shellbackup/master/myclashrule.yml"
+	wget -N --no-check-certificate "https://raw.githubusercontent.com/itswl/shellbackup/master/myclashrule.yml"  > /dev/null 2>&1
 	systemctl stop nginx
 	sleep 5
 	#申请https证书
@@ -185,11 +185,11 @@ EOF
 	systemctl start nginx
         cd /usr/src
 	#wget https://github.com/trojan-gfw/trojan/releases/download/v1.13.0/trojan-1.13.0-linux-amd64.tar.xz
-	wget https://api.github.com/repos/trojan-gfw/trojan/releases/latest -O latest-trojan
+	wget https://api.github.com/repos/trojan-gfw/trojan/releases/latest -O latest-trojan > /dev/null 2>&1
 	latest_version=`grep tag_name latest-trojan| awk -F '[:,"v]' '{print $6}'`
-	echo "trojan-v${latest_version}" > /usr/src/trojan/trojan_version
-	wget https://github.com/trojan-gfw/trojan/releases/download/v${latest_version}/trojan-${latest_version}-linux-amd64.tar.xz
-	tar xf trojan-${latest_version}-linux-amd64.tar.xz   && rm -rf latest-trojan trojan-${latest_version}-linux-amd64.tar.xz
+	echo "trojan-v${latest_version}" > /usr/src/trojan_version
+	wget https://github.com/trojan-gfw/trojan/releases/download/v${latest_version}/trojan-${latest_version}-linux-amd64.tar.xz > /dev/null 2>&1
+	tar xf trojan-${latest_version}-linux-amd64.tar.xz  > /dev/null 2>&1  && rm -rf latest-trojan trojan-${latest_version}-linux-amd64.tar.xz
 	trojan_passwd=$(cat /dev/urandom | head -1 | md5sum | head -c 8)
 	cat > /usr/src/trojan/cli-config.json <<-EOF
 {
