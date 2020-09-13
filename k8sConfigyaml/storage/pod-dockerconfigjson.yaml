@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:  
+  name: foo
+spec:  
+  containers:    
+  - name: foo      
+    image: imwl/test:0.14
+  imagePullSecrets:    
+  - name: myregistrykey
