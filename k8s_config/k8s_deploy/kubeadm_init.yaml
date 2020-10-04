@@ -9,7 +9,7 @@ bootstrapTokens:
   - authentication
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: 192.168.43.101  # 主节点IP
+  advertiseAddress: 192.168.43.100  # 主节点IP 此处为 VIP
   bindPort: 6443
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
@@ -20,9 +20,20 @@ nodeRegistration:
 ---
 apiServer:
   timeoutForControlPlane: 4m0s
+  certSANs:
+    - k8s01
+    - k8s04
+    - k8s05
+    - master.k8s.io
+    - 192.168.43.100
+    - 192.168.43.101
+    - 192.168.43.104
+    - 192.168.43.105
+    - 127.0.0.1
 apiVersion: kubeadm.k8s.io/v1beta2
 certificatesDir: /etc/kubernetes/pki
 clusterName: kubernetes
+controlPlaneEndpoint: "master.k8s.io:16443"
 controllerManager: {}
 dns:
   type: CoreDNS
@@ -41,5 +52,5 @@ scheduler: {}
 apiVersion: kubeproxy.config.k8s.io/v1alpha1
 kind: KubeProxyConfiguration
 featureGates:
-SupportIPVSProxyMode: true
-mode: ipvs # 默认调度方式 IPVS   
+  SupportIPVSProxyMode: true
+mode: ipvs # 默认调度方式 IPVS
