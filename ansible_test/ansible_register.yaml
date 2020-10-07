@@ -1,0 +1,8 @@
+- hosts: k8s_master
+  remote_user: root
+  tasks:
+  - name: register hostname
+    shell: "hostname"
+    register: info
+  - name: display vars
+    debug: msg="{{ info.stdout }}"

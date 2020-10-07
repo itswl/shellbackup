@@ -1,0 +1,22 @@
+- hosts: k8s_master
+  remote_user: root
+  vars:
+  - package: httpd
+  - service: httpd
+
+  tasks:
+  - name: install {{ package }}
+    yum: name={{ package }} state=latest
+  - name: copy configuration file
+    copy: src=/root/httpd.conf dest=/etc/httpd/conf/httpd.conf
+    notify:  # 如果前面执行成功
+    - restart {{ service }} # 则执行此条
+    tags:
+    - updateConf
+
+  - name: start {{ service }}
+    systemd: name={{ service }} enabled=yes state=started
+
+  handlers:
+  - name: restart httpd
+    systemd: name=httpd state=restarted
