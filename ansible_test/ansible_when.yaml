@@ -3,4 +3,4 @@
   tasks:
   - name: IP -> Host
     debug: msg={{ ansible_fqdn }}
-    when: ansible_all_ipv4_addresses[0] != '192.168.43.105'
+    when: ansible_os_family == 'RedHat'
