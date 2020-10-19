@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="16403c70-0387-450c-9ee2-48dbc075418c" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="importAutomatically" value="true" />
+      </MavenImportingSettings>
+    </option>
+  </component>
+  <component name="ProjectId" id="1cAHPvwtamNFKEPRb1pJKidKKlf" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/sharding-jdbc-example/src/main/resources" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.tslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.lagou.repository" />
+      <recent name="com.lagou.entity" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\lagou\sharding-jdbc-example\src\main\resources" />
+    </key>
+  </component>
+  <component name="RunManager" selected="JUnit.TestShardingDatabase.testLoad">
+    <configuration name="TestEncryptor.testAdd" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="sharding-jdbc-example" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="dao.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="dao" />
+      <option name="MAIN_CLASS_NAME" value="dao.TestEncryptor" />
+      <option name="METHOD_NAME" value="testAdd" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestPosition.test2" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="sharding-proxy-example" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="dao.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="dao" />
+      <option name="MAIN_CLASS_NAME" value="dao.TestPosition" />
+      <option name="METHOD_NAME" value="test2" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestShardingDatabase.testLoad" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="sharding-jdbc-example" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="dao.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="dao" />
+      <option name="MAIN_CLASS_NAME" value="dao.TestShardingDatabase" />
+      <option name="METHOD_NAME" value="testLoad" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestShardingTransaction.test1" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="sharding-jdbc-example" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="dao.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="dao" />
+      <option name="MAIN_CLASS_NAME" value="dao.TestShardingTransaction" />
+      <option name="METHOD_NAME" value="test1" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestShardingTransaction.testAdd2" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="sharding-jdbc-example" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="dao.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="dao" />
+      <option name="MAIN_CLASS_NAME" value="dao.TestShardingTransaction" />
+      <option name="METHOD_NAME" value="testAdd2" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.TestShardingDatabase.testLoad" />
+        <item itemvalue="JUnit.TestShardingTransaction.test1" />
+        <item itemvalue="JUnit.TestShardingTransaction.testAdd2" />
+        <item itemvalue="JUnit.TestEncryptor.testAdd" />
+        <item itemvalue="JUnit.TestPosition.test2" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="16403c70-0387-450c-9ee2-48dbc075418c" name="Default Changelist" comment="" />
+      <created>1589964456401</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1589964456401</updated>
+      <workItem from="1589964457589" duration="6244000" />
+      <workItem from="1590027322340" duration="21894000" />
+      <workItem from="1590132497644" duration="4577000" />
+      <workItem from="1590202575588" duration="1902000" />
+      <workItem from="1590377408743" duration="5237000" />
+      <workItem from="1590461073385" duration="60000" />
+      <workItem from="1590487012538" duration="46000" />
+      <workItem from="1590487102327" duration="510000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="670" y="81" key="#com.intellij.ide.util.MemberChooser" timestamp="1590059015595">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="670" y="81" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1080@0.0.1920.1080" timestamp="1590059015595" />
+    <state x="558" y="167" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1590029392596">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="558" y="167" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1590029392596" />
+    <state width="1852" height="712" key="GridCell.Tab.0.bottom" timestamp="1590487612083">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1852" height="712" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1590487612083" />
+    <state width="1852" height="712" key="GridCell.Tab.0.center" timestamp="1590487612083">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1852" height="712" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1590487612083" />
+    <state width="1852" height="712" key="GridCell.Tab.0.left" timestamp="1590487612083">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1852" height="712" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1590487612083" />
+    <state width="1852" height="712" key="GridCell.Tab.0.right" timestamp="1590487612083">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1852" height="712" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1590487612083" />
+    <state x="258" y="30" key="Maven.ArtifactSearchDialog" timestamp="1589973974230">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="258" y="30" key="Maven.ArtifactSearchDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1589973974230" />
+    <state x="22" y="115" width="1738" height="898" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog" timestamp="1590380081813">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="22" y="115" width="1738" height="898" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1590380081813" />
+    <state x="0" y="179" key="new project wizard" timestamp="1590144182177">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="0" y="179" key="new project wizard/0.0.1920.1080@0.0.1920.1080" timestamp="1590144182177" />
+  </component>
+</project>
