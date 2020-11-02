@@ -41,8 +41,19 @@ elif cat /proc/version | grep -Eqi "centos|red hat|redhat"; then
 fi
 
 function install_trojan(){
+green "======================="
+blue "请输入绑定到本VPS的域名"
+green "======================="
+read your_domain
 systemctl stop nginx
 $systemPackage -y install net-tools socat
+real_addr=`ping ${your_domain} -c 1 | sed '1{s/[^(]*(//;s/).*//;q}'`
+local_addr=`curl ipv4.icanhazip.com`
+if [ $real_addr == $local_addr ] ; then
+	green "=========================================="
+	green "       域名解析正常，开始安装trojan"
+	green "=========================================="
+	sleep 1s
 Port80=`netstat -tlpn | awk -F '[: ]+' '$1=="tcp"{print $5}' | grep -w 80`
 Port443=`netstat -tlpn | awk -F '[: ]+' '$1=="tcp"{print $5}' | grep -w 443`
 if [ -n "$Port80" ]; then
@@ -126,17 +137,6 @@ fi
 $systemPackage -y install  nginx wget unzip zip curl tar >/dev/null 2>&1
 systemctl enable nginx
 systemctl stop nginx
-green "======================="
-blue "请输入绑定到本VPS的域名"
-green "======================="
-read your_domain
-real_addr=`ping ${your_domain} -c 1 | sed '1{s/[^(]*(//;s/).*//;q}'`
-local_addr=`curl ipv4.icanhazip.com`
-if [ $real_addr == $local_addr ] ; then
-	green "=========================================="
-	green "       域名解析正常，开始安装trojan"
-	green "=========================================="
-	sleep 1s
 cat > /etc/nginx/nginx.conf <<-EOF
 user  root;
 worker_processes  1;
