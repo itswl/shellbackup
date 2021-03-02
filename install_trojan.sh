@@ -46,7 +46,7 @@ blue "请输入绑定到本VPS的域名"
 green "======================="
 read your_domain
 systemctl stop nginx
-$systemPackage -y install net-tools socat
+$systemPackage -y install net-tools socat curl
 real_addr=`ping ${your_domain} -c 1 | sed '1{s/[^(]*(//;s/).*//;q}'`
 local_addr=`curl ipv4.icanhazip.com`
 if [ $real_addr == $local_addr ] ; then
@@ -134,7 +134,7 @@ elif [ "$release" == "ubuntu" ]; then
 elif [ "$release" == "debian" ]; then
     apt-get update
 fi
-$systemPackage -y install  nginx wget unzip zip curl tar >/dev/null 2>&1
+$systemPackage -y install  nginx unzip zip tar >/dev/null 2>&1
 systemctl enable nginx
 systemctl stop nginx
 cat > /etc/nginx/nginx.conf <<-EOF
