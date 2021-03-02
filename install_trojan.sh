@@ -139,7 +139,7 @@ systemctl enable nginx
 systemctl stop nginx
 cat > /etc/nginx/nginx.conf <<-EOF
 user  root;
-worker_processes  1;
+worker_processes  auto;
 error_log  /var/log/nginx/error.log warn;
 pid        /var/run/nginx.pid;
 events {
@@ -311,6 +311,7 @@ EOF
 	green "1. 重启VPS"
 	green "2. 重新执行脚本，使用修复证书功能"
 	red "==================================="
+	rm -rf 1
 	fi
 	
 else
@@ -380,7 +381,7 @@ function remove_trojan(){
 }
 
 function bbr_boost_sh(){
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/itswl/shellbackup/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
+    wget -N --no-check-certificate "https://raw.githubusercontent.com/itswl/shellbackup/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh &&
 }
 
 start_menu(){
