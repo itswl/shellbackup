@@ -381,7 +381,7 @@ function remove_trojan(){
 }
 
 function bbr_boost_sh(){
-    wget -N --no-check-certificate "https://raw.githubusercontent.com/itswl/shellbackup/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh 
+    wget -N --no-check-certificate "https://raw.githubusercontent.com/itswl/shellbackup/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
 }
 
 start_menu(){
