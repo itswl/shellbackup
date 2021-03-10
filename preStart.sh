@@ -156,7 +156,7 @@ TIPS(){
     echo ' /etc/fstab'
     echo ' /etc/sudoers'
     echo '磁盘 默认 /dev/vdb  挂载路径默认 /mnt/etcd_data 端口默认 22 如需修改请 修改 脚本文件中的主要变量（开头地方）' 
-    echo 'cat /etc/passwd |grep 3000  # 删除3000的用户'
+    echo " cat /etc/passwd |grep 3000 | awk  -F ':'  '{print \$1}'  # 删除3000的用户'"
     echo ''
     echo 'if have problems press ctrl + c quit '
     echo ''
