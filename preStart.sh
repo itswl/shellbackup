@@ -11,9 +11,24 @@ USER=$(whoami)   # 获取执行用户名
 
 ## 主要变量
 DISKTPYE='/dev/vdb'  # 磁盘默认路径
-mount_abs='/mnt/etcd_data' # 挂载的路径
+mount_abs='/mnt/etcd_data' # 挂载的路径 ，此路径 clean 是 有 rm -rf 操作，确保有值
 PORT=22  # ssh 端口
 
+
+if [ ! -n $mount_abs ]; then  
+    echo "mount_abs can't be null "  
+    exit 1
+fi
+
+if [ "$mount_abs" == '/' ]; then  
+    echo "mount_abs can't be / "  
+    exit 1
+fi    
+
+if [ "$mount_abs" == '' ]; then  
+    echo "mount_abs can't be / "  
+    exit 1
+fi
 
 ## 可选
 
@@ -53,7 +68,7 @@ mkfsMount () {
 undomkfsMount () {
     echo ""
     echo "执行的命令示例： "
-    echo "cp /etc/fstab.back /etc/fstab;umount $mount_abs;rm -rf $mount_abs;"
+    echo "cp /etc/fstab.backByPreStart /etc/fstab;umount $mount_abs;rm -rf $mount_abs;"
     echo ""
     for IP in $ADDRESS;do
         ping $IP -c1 &>/dev/null
@@ -62,7 +77,7 @@ undomkfsMount () {
                 continue
         fi
         
-        sshpass -e ssh -p  $PORT -o StrictHostKeyChecking=no $USER@$IP "cp /etc/fstab.back /etc/fstab;umount $mount_abs;rm -rf $mount_abs;echo undomkfsMount  $IP completed"
+        sshpass -e ssh -p  $PORT -o StrictHostKeyChecking=no $USER@$IP "cp /etc/fstab.backByPreStart /etc/fstab;umount $mount_abs;rm -rf $mount_abs;echo undomkfsMount  $IP completed"
     done
 }
 
@@ -89,7 +104,7 @@ createUserAndWirteSudoers () {
 undocreateUserAndWirteSudoers () {
     echo ""
     echo "执行的命令示例： "
-    echo "userdel -r $MYUSER;cp /etc/sudoers.back /etc/sudoers"
+    echo "userdel -r $MYUSER;cp /etc/sudoers.backByPreStart /etc/sudoers"
     echo ""
     for IP in $ADDRESS;do
         ping $IP -c1 &>/dev/null
@@ -97,7 +112,7 @@ undocreateUserAndWirteSudoers () {
                 echo "$IP 无法ping通请检查网络"
                 continue
         fi
-        sshpass -e ssh -p  $PORT -o StrictHostKeyChecking=no $USER@$IP "userdel -r $MYUSER;cp /etc/sudoers.back /etc/sudoers;echo undocreateUserAndWirteSudoers  $IP completed"
+        sshpass -e ssh -p  $PORT -o StrictHostKeyChecking=no $USER@$IP "userdel -r $MYUSER;cp /etc/sudoers.backByPreStart /etc/sudoers;echo undocreateUserAndWirteSudoers  $IP completed"
     done
 } 
 
@@ -106,7 +121,7 @@ undocreateUserAndWirteSudoers () {
 backupFiles () {
     echo ""
     echo "执行的命令示例： "
-    echo "cp /etc/sudoers /etc/sudoers.back &&  cp /etc/fstab /etc/fstab.back"
+    echo "cp /etc/sudoers /etc/sudoers.backByPreStart &&  cp /etc/fstab /etc/fstab.backByPreStart"
     echo ""
     for IP in $ADDRESS;do
         ping $IP -c1 &>/dev/null
@@ -118,7 +133,7 @@ backupFiles () {
         read -s -p $'input root password : \n' ROOTPASSWORD
     fi
     export SSHPASS=$ROOTPASSWORD
-    sshpass -e ssh -p  $PORT -o StrictHostKeyChecking=no $USER@$IP "cp /etc/sudoers /etc/sudoers.back &&  cp /etc/fstab /etc/fstab.back && echo backupfiles  in   $IP completed "
+    sshpass -e ssh -p  $PORT -o StrictHostKeyChecking=no $USER@$IP "cp /etc/sudoers /etc/sudoers.backByPreStart &&  cp /etc/fstab /etc/fstab.backByPreStart && echo backupfiles  in   $IP completed "
     done
 }
 
@@ -242,13 +257,12 @@ TIPS(){
     done
     echo '如果地址不对，请删除同目录下的 addresss.txt'
     echo ''
-    echo '首次安装可能需要在所有节点备份以下文件:'
+    echo "首次运行请先执行   bash $script_name backup 在所有节点备份以下文件"
     echo ' /etc/fstab'
     echo ' /etc/sudoers'
     echo ''
-    echo "可以如此备份   bash $script_name backup"
-    echo ''
-    echo "当前默认 磁盘 $DISKTPYE  挂载路径 $mount_abs 端口 $PORT " 
+    echo "当前默认 磁盘 $DISKTPYE  挂载路径 $mount_abs 端口 $PORT "
+    echo "mount_abs  此路径 在clean 是 有 rm -rf 操作，请确保有值上一行挂载路径后有值且正确" 
     echo ''
     echo "清除安装 可执行 bash $script_name clean"
     echo ''
@@ -262,11 +276,10 @@ TIPS(){
 }
 
 
-
-# 主要是 用来在其他节点查看 内核版本是否符合要求
-
 if [[ $1 == "clean" ]]; then
     gainAddress
+    echo "当前默认 磁盘 $DISKTPYE  挂载路径 $mount_abs 端口 $PORT "
+    echo "mount_abs  此路径 在clean 是 有 rm -rf 操作，请确保有值上一行挂载路径后有值且正确" 
     if [ ! $ROOTPASSWORD ];then
         read -s -p $'input root password : \n' ROOTPASSWORD
     fi
@@ -325,6 +338,7 @@ if [[ $1 == "" ]];then
         rootUserRun
         echo "正在切换到创建的用户 $MYUSER 建立互信"
         su - $MYUSER -c "bash ~/$script_name trust $MYUSERPASSWORD "
+    else
+        echo "try bash $script_name trust"
     fi
 fi
-
