@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:  
+  name: lifecycle-demo
+spec:
+  containers:
+  - name: lifecycle-demo-container    
+    image: nginx:1.7.9 
+    lifecycle:      
+      postStart:   # 启动动作     
+        exec:          
+          command: ["/bin/sh", "-c", "echo Hello from the postStart handler >/usr/share/message.txt"]      
+      preStop:     # 退出动作   
+        exec:
+          command: ["/bin/sh", "-c", "echo Hello from the poststop handler >/usr/share/message.txt"]
+

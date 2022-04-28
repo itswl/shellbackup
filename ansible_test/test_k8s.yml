@@ -1,0 +1,7 @@
+- hosts: k8s_master
+  remote_user: root
+  tasks:
+  - name: "echo hello hukey."
+    debug:
+      msg: "hello, hukey."
+      

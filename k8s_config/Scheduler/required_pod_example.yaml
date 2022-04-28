@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: affinity
+  labels: 
+    app: node-affinity-pod
+spec:
+  containers:
+  - name: with-node-affinity
+    image: nginx:1.7.9
+  affinity:            #亲和性
+    nodeAffinity:        #node亲和性
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: NotIn      #键值运算关系 ，NotIn:label的值不在某个列表中
+            values:
+            - k8s02

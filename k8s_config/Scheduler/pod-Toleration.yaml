@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deploy
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80       
+      tolerations:  #containers同级
+      - key: "key1"          #能容忍的污点key
+        operator: "Equal"    #Equal等于表示key=value ， Exists不等于，表示当值不等于下面value正常
+        value: "value1"      #值
+        effect: "NoExecute"  #effect策略，见上面
+        tolerationSeconds: 3600  #原始的pod多久驱逐，注意只有effect: "NoExecute"才能设置，不然报错

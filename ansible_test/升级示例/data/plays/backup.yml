@@ -1,0 +1,59 @@
+
+# etcd 备份
+
+
+- hosts: localhost
+  become: true
+  tasks:
+  # step1: find a healthy member in the etcd cluster
+  - name: set NODE_IPS of the etcd cluster
+    set_fact: NODE_IPS="{% for host in groups['etcd'] %}{{ host }} {% endfor %}"
+  
+
+   #当前 文件 证书等信息 在 etcd 安装时 已经固定在  /etc/etcd/ssl/ 目录
+  - name: get etcd cluster status
+    shell: 'for ip in {{ NODE_IPS }};do \
+              ETCDCTL_API=3 {{ bin_dir }}/etcdctl \
+              --endpoints=https://"$ip":2379 \
+              --cacert={{ ca_dir }}/ca.pem  \
+              --cert=/etc/etcd/ssl/etcd.pem \
+              --key=/etc/etcd/ssl/etcd-key.pem \
+              endpoint health; \
+            done'
+    register: ETCD_CLUSTER_STATUS
+    ignore_errors: true
+
+  - debug: var="ETCD_CLUSTER_STATUS"
+
+  - name: get a running ectd node
+    shell: 'echo -e "{{ ETCD_CLUSTER_STATUS.stdout }}" \
+             "{{ ETCD_CLUSTER_STATUS.stderr }}" \
+             |grep "is healthy"|sed -n "1p"|cut -d: -f2|cut -d/ -f3'
+    register: RUNNING_NODE
+
+  - debug: var="RUNNING_NODE.stdout"
+
+  - name: get current time
+    set_fact: temp="{{lookup('pipe','date \"+%Y%m%d_%H%M\"')}}"
+
+  # 创建备份的文件夹 /etcd_backup，然后生成备份文件 
+  # 文件夹路径修改 role restore 的路径也要同步修改，或者放到配置文件中
+  # 生成的文件命名格式 snapshot_`date`.db
+  - name: make a backup on the etcd node
+    shell: "mkdir -p /etcd_backup && cd /etcd_backup && \
+        ETCDCTL_API=3 {{ bin_dir }}/etcdctl snapshot save snapshot_{{ temp }}.db"
+    args:
+      warn: false
+    delegate_to: "{{ RUNNING_NODE.stdout }}"
+
+# 拷贝当前备份数据到 /etc/etcd/ssl/backup/ 目录下
+  - name: fetch the backup data
+    fetch:
+      src: /etcd_backup/snapshot_{{ temp }}.db
+      dest: "/etc/etcd/backup/"
+      flat: yes
+    delegate_to: "{{ RUNNING_NODE.stdout }}"
+
+
+  - name: update the latest backup
+    shell: 'cd /etc/etcd/backup/ && /bin/cp -f snapshot_{{ temp }}.db snapshot.db'
