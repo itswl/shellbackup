@@ -235,7 +235,7 @@ EOF
 	rm -rf  /opt/nginx/html/blog/*
     wget -q -P /opt/nginx/html/blog https://github.com/ursocute/ursocute.github.io/archive/refs/heads/master.zip >/dev/null 
     unzip -o  /opt/nginx/html/blog/master.zip -d  /opt/nginx/html/blog/ >/dev/null 
-    mv  /opt/nginx/html/blog/ursocute*/* ./
+    mv  /opt/nginx/html/blog/ursocute*/*  /opt/nginx/html/blog/
     rm -rf  /opt/nginx/html/blog/master.zip   /opt/nginx/html/blog/ursocute*
 
 
