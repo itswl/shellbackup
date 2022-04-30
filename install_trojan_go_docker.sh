@@ -2,7 +2,7 @@
 
 trojan_passwd=$(cat /dev/urandom | head -1 | md5sum | head -c 8)
 random_path=$(cat /dev/urandom | head -1 | md5sum | head -c 8)
-cdn_true_or_fasle=fasle
+cdn_true_or_fasle=false
 
 blue(){
     echo -e "\033[34m\033[01m$1\033[0m"
