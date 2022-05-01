@@ -2,7 +2,7 @@
 
 trojan_passwd=$(cat /dev/urandom | head -1 | md5sum | head -c 8)
 random_path=$(cat /dev/urandom | head -1 | md5sum | head -c 8)
-cdn_true_or_fasle=false
+cdn_true_or_false=false
 
 blue(){
     echo -e "\033[34m\033[01m$1\033[0m"
@@ -173,7 +173,7 @@ mkdir -p /opt/nginx/conf.d
 cat > /opt/nginx/nginx.conf <<-EOF
 user  nginx;
 worker_processes  auto;
-error_log  /var/log/nginx/error.log warn;
+error_log  off;
 pid        /var/run/nginx.pid;
 
 
@@ -191,7 +191,7 @@ http {
                       '\$status \$body_bytes_sent "\$http_referer" '
                       '"\$http_user_agent" "\$http_x_forwarded_for"';
 					  
-    access_log  /var/log/nginx/access.log  main;
+    access_log  off;
     client_max_body_size 1024m;
     sendfile        on;
     #tcp_nopush     on;
@@ -256,7 +256,7 @@ cat > /opt/across/trojan-go/config.json <<-EOF
   "password": [
     "$trojan_passwd"
   ],
-  "log_level": 2,
+  "log_level": 5,
   "ssl": {
     "cert": "/etc/across/server.crt",
     "key": "/etc/across/server.key",
@@ -291,12 +291,12 @@ cat > /opt/across/trojan-go/config.json <<-EOF
     ]
   },
   "websocket": {
-    "enabled": $cdn_true_or_fasle,
+    "enabled": $cdn_true_or_false,
     "path": "/$random_path"
   },
   "shadowsocks": {
-    "method": "AES-128-GCM",
-    "enabled": $cdn_true_or_fasle,
+    "method": "CHACHA20-IETF-POLY1305",
+    "enabled": $cdn_true_or_false,
     "password": "$trojan_passwd"
   }
 }
