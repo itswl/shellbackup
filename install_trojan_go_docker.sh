@@ -165,10 +165,23 @@ fi
 
 }
 
+function html(){
+   
+	#设置伪装站
+    rm -rf  /opt/nginx/html/blog/*
+    rm -rf  /opt/nginx/html/blog/*
+    wget -q -P /opt/nginx/html/blog https://github.com/ursocute/ursocute.github.io/archive/refs/heads/master.zip >/dev/null 
+    unzip -o  /opt/nginx/html/blog/master.zip -d  /opt/nginx/html/blog/ >/dev/null 
+    mv  /opt/nginx/html/blog/ursocute*/*  /opt/nginx/html/blog/
+    rm -rf  /opt/nginx/html/blog/master.zip   /opt/nginx/html/blog/ursocute*
+ 
+}
+
 function install_nginx(){
 docker rm -f nginx
 mkdir -p /opt/nginx/html/blog
 mkdir -p /opt/nginx/conf.d
+html
 
 cat > /opt/nginx/nginx.conf <<-EOF
 user  nginx;
@@ -229,15 +242,6 @@ server {
     }
 }
 EOF
-
-	#设置伪装站
-	rm -rf  /opt/nginx/html/blog/*
-	rm -rf  /opt/nginx/html/blog/*
-    wget -q -P /opt/nginx/html/blog https://github.com/ursocute/ursocute.github.io/archive/refs/heads/master.zip >/dev/null 
-    unzip -o  /opt/nginx/html/blog/master.zip -d  /opt/nginx/html/blog/ >/dev/null 
-    mv  /opt/nginx/html/blog/ursocute*/*  /opt/nginx/html/blog/
-    rm -rf  /opt/nginx/html/blog/master.zip   /opt/nginx/html/blog/ursocute*
-
 
     docker run -d  --network=host --name nginx --restart=always  -v /opt/nginx/nginx.conf:/etc/nginx/nginx.conf -v /opt/nginx:/opt/nginx nginx
     (crontab -l|grep -v "nginx";echo "3 1  * * 2 docker restart nginx")| crontab
