@@ -372,11 +372,10 @@ function install_docker(){
 }
 function start_docker(){
   sudo usermod -aG docker $USER  # 避免每次都输入 sudo,将用户加入 docker 用户组
-  newgrp docker 
   service docker restart
   systemctl enable docker
- 
-}
+  newgrp docker 
+ }
 
 function stop(){
     red "按需删除"
