@@ -47,31 +47,18 @@ fi
 CHECK=$(grep SELINUX= /etc/selinux/config | grep -v "#")
 if [ "$CHECK" == "SELINUX=enforcing" ]; then
     red "======================================================================="
-    red "检测到SELinux为开启状态，为防止申请证书失败，请先重启VPS后，再执行本脚本"
+    red "检测到SELinux为开启状态,正在关闭"
     red "======================================================================="
-    read -p "是否现在重启 ?请输入 [Y/n] :" yn
-	[ -z "${yn}" ] && yn="y"
-	if [[ $yn == [Yy] ]]; then
-	    sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-            setenforce 0
-	    echo -e "VPS 重启中..."
-	    reboot
-	fi
-    exit
+    sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+    setenforce 0
 fi
+
 if [ "$CHECK" == "SELINUX=permissive" ]; then
     red "======================================================================="
-    red "检测到SELinux为宽容状态，为防止申请证书失败，请先重启VPS后，再执行本脚本"
+    red "检测到SELinux为宽容状态"
     red "======================================================================="
-    read -p "是否现在重启 ?请输入 [Y/n] :" yn
-	[ -z "${yn}" ] && yn="y"
-	if [[ $yn == [Yy] ]]; then
-	    sed -i 's/SELINUX=permissive/SELINUX=disabled/g' /etc/selinux/config
-            setenforce 0
-	    echo -e "VPS 重启中..."
-	    reboot
-	fi
-    exit
+    sed -i 's/SELINUX=permissive/SELINUX=disabled/g' /etc/selinux/config
+    setenforce 0
 fi
 if [ "$release" == "centos" ]; then
     if  [ -n "$(grep ' 6\.' /etc/redhat-release)" ] ;then
@@ -122,7 +109,7 @@ fi
 #systemctl disable rpcbind.socket
 
 $systemPackage -y update
-$systemPackage -y install net-tools socat curl unzip tar wget vim
+$systemPackage -y install net-tools curl unzip tar wget vim 
 }
 function check_domain(){
 green "======================="
@@ -175,7 +162,7 @@ function html(){
     unzip -o  /opt/nginx/html/blog/master.zip -d  /opt/nginx/html/blog/ >/dev/null 
     mv  /opt/nginx/html/blog/ursocute*/*  /opt/nginx/html/blog/
     rm -rf  /opt/nginx/html/blog/master.zip   /opt/nginx/html/blog/ursocute*
- 
+
 }
 
 function install_nginx(){
@@ -318,6 +305,10 @@ docker run -d  --network=host --name trojan-go --restart=always \
 }
 
 function repair_cert(){
+    red "============================================================="
+    red "      如果修改了域名，先执行 rm -rf /opt/.acme.sh/             " 
+    red "============================================================="
+sleep 10
 mkdir -p /opt/.acme.sh
 docker stop nginx
 docker stop trojan-go
