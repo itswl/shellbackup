@@ -4,6 +4,10 @@ trojan_passwd=$(cat /dev/urandom | head -1 | md5sum | head -c 8)
 random_path=$(cat /dev/urandom | head -1 | md5sum | head -c 8)
 cdn_true_or_false=false
 
+trojan_passwd="123456"
+random_path="123456"
+cdn_true_or_fasle=false
+
 blue(){
     echo -e "\033[34m\033[01m$1\033[0m"
 }
@@ -47,18 +51,31 @@ fi
 CHECK=$(grep SELINUX= /etc/selinux/config | grep -v "#")
 if [ "$CHECK" == "SELINUX=enforcing" ]; then
     red "======================================================================="
-    red "检测到SELinux为开启状态,正在关闭"
+    red "检测到SELinux为开启状态，为防止申请证书失败，请先重启VPS后，再执行本脚本"
     red "======================================================================="
-    sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-    setenforce 0
+    read -p "是否现在重启 ?请输入 [Y/n] :" yn
+	[ -z "${yn}" ] && yn="y"
+	if [[ $yn == [Yy] ]]; then
+	    sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+            setenforce 0
+	    echo -e "VPS 重启中..."
+	    reboot
+	fi
+    exit
 fi
-
 if [ "$CHECK" == "SELINUX=permissive" ]; then
     red "======================================================================="
-    red "检测到SELinux为宽容状态"
+    red "检测到SELinux为宽容状态，为防止申请证书失败，请先重启VPS后，再执行本脚本"
     red "======================================================================="
-    sed -i 's/SELINUX=permissive/SELINUX=disabled/g' /etc/selinux/config
-    setenforce 0
+    read -p "是否现在重启 ?请输入 [Y/n] :" yn
+	[ -z "${yn}" ] && yn="y"
+	if [[ $yn == [Yy] ]]; then
+	    sed -i 's/SELINUX=permissive/SELINUX=disabled/g' /etc/selinux/config
+            setenforce 0
+	    echo -e "VPS 重启中..."
+	    reboot
+	fi
+    exit
 fi
 if [ "$release" == "centos" ]; then
     if  [ -n "$(grep ' 6\.' /etc/redhat-release)" ] ;then
@@ -109,14 +126,20 @@ fi
 #systemctl disable rpcbind.socket
 
 $systemPackage -y update
-$systemPackage -y install net-tools curl unzip tar wget vim 
+$systemPackage -y install net-tools socat curl unzip tar wget vim
 }
 function check_domain(){
-green "======================="
-blue "请输入绑定到本VPS的域名"
-green "======================="
-read your_domain
+    if [ ! -f "./your_domain.txt" ];then
+        green "======================="
+        blue "请输入绑定到本VPS的域名"
+        green "======================="
+        read your_domain    
+        echo $your_domain > your_domain.txt
+    fi
+    your_domain=`cat ./your_domain.txt`
+
 real_addr=`ping ${your_domain} -c 1 | sed '1{s/[^(]*(//;s/).*//;q}'`
+
 local_addr=`curl ipv4.icanhazip.com`
 if [ $real_addr == $local_addr ] ; then
         green "=========================================="
@@ -162,32 +185,25 @@ function html(){
     unzip -o  /opt/nginx/html/blog/master.zip -d  /opt/nginx/html/blog/ >/dev/null 
     mv  /opt/nginx/html/blog/ursocute*/*  /opt/nginx/html/blog/
     rm -rf  /opt/nginx/html/blog/master.zip   /opt/nginx/html/blog/ursocute*
-
+ 
 }
 
 function install_nginx(){
 docker rm -f nginx
 mkdir -p /opt/nginx/html/blog
 mkdir -p /opt/nginx/conf.d
-html
 
 cat > /opt/nginx/nginx.conf <<-EOF
 user  nginx;
 worker_processes  auto;
 error_log  off;
 pid        /var/run/nginx.pid;
-
-
 events {
     worker_connections  1024;
 }
-
-
 http {
     include       /etc/nginx/mime.types;
     default_type  application/octet-stream;
-
-
     log_format  main  '\$remote_addr - \$remote_user [\$time_local] "\$request" '
                       '\$status \$body_bytes_sent "\$http_referer" '
                       '"\$http_user_agent" "\$http_x_forwarded_for"';
@@ -200,7 +216,6 @@ http {
     #gzip  on;
     include /opt/nginx/conf.d/*.conf;
 }
-
 EOF
 
 cat > /opt/nginx/conf.d/blog.conf <<-EOF
@@ -232,7 +247,6 @@ server {
 EOF
 
     docker run -d  --network=host --name nginx --restart=always  -v /opt/nginx/nginx.conf:/etc/nginx/nginx.conf -v /opt/nginx:/opt/nginx nginx
-    (crontab -l|grep -v "nginx";echo "3 1  * * 2 docker restart nginx")| crontab
 }
 	
 function install_trojan_go(){
@@ -301,14 +315,10 @@ docker run -d  --network=host --name trojan-go --restart=always \
     -v  /opt/.acme.sh/out:/etc/across \
     teddysun/trojan-go
     
- (crontab -l|grep -v "trojan-go"|echo "10 1  * * 2 docker restart trojan-go")| crontab
+ (crontab -l|grep -v "trojan-go";echo "10 1  * * 2 docker restart trojan-go")| crontab
 }
 
 function repair_cert(){
-    red "============================================================="
-    red "      如果修改了域名，先执行 rm -rf /opt/.acme.sh/             " 
-    red "============================================================="
-sleep 10
 mkdir -p /opt/.acme.sh
 docker stop nginx
 docker stop trojan-go
@@ -317,6 +327,7 @@ docker run --restart=always -itd  -v /opt/.acme.sh/out:/acme.sh   --net=host  --
     if test -s /opt/.acme.sh/out/server.crt; then
 	    
         green "证书申请成功"
+	
     else
     	red "申请证书失败"
     docker exec acme.sh  --register-account -m imwl@live.com
@@ -349,12 +360,16 @@ docker run --restart=always -itd  -v /opt/.acme.sh/out:/acme.sh   --net=host  --
 	fi
     if test -s /opt/.acme.sh/out/server.crt; then
         green "证书申请成功"	
+	docker rm -f acme.sh
 	else
 	    red "申请证书失败"
 	    exit 1
     fi
 docker restart nginx
 docker restart trojan-go
+
+
+  (crontab -l|grep -v "acme.sh";echo "38 14  * * * docker stop nginx;docker run --rm  -it -v /opt/.acme.sh/out:/acme.sh --net=host neilpang/acme.sh --cron;docker restart nginx")| crontab
 }
 
 
