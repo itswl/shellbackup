@@ -1,0 +1,631 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "model online status",
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 19,
+  "iteration": 1616746163624,
+  "links": [],
+  "panels": [
+    {
+      "aliasColors": {},
+      "bars": false,
+      "cacheTimeout": null,
+      "dashLength": 10,
+      "dashes": false,
+      "fill": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {},
+      "percentage": false,
+      "pluginVersion": "6.2.0",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "floor(sum by(modelId,modelName)(increase(datacanvas_server_request_total{method=\"PREDICTIONS\",active=\"true\",apsapp=\"model\",serviceId=~\"^$serviceId\",tenantId=~\"^$tenantId\",modelName!=\"\",shadow=\"false\",KIND=\"KIND_S\"}[1h])))",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "{{ modelName}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 0,
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 4,
+      "links": [],
+      "options": {
+        "fieldOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "defaults": {
+            "max": 100,
+            "min": 0
+          },
+          "mappings": [],
+          "override": {},
+          "thresholds": [
+            {
+              "color": "green",
+              "index": 0,
+              "value": null
+            },
+            {
+              "color": "red",
+              "index": 1,
+              "value": 80
+            }
+          ],
+          "values": false
+        },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "6.2.0",
+      "targets": [
+        {
+          "expr": "",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "流量状况",
+      "type": "gauge"
+    },
+    {
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "id": 6,
+      "links": [],
+      "options": {
+        "displayMode": "gradient",
+        "fieldOptions": {
+          "calcs": [
+            "last"
+          ],
+          "defaults": {
+            "max": 100,
+            "min": 0,
+            "title": "",
+            "unit": "percent"
+          },
+          "mappings": [],
+          "override": {},
+          "thresholds": [
+            {
+              "color": "green",
+              "index": 0,
+              "value": null
+            },
+            {
+              "color": "red",
+              "index": 1,
+              "value": 80
+            }
+          ],
+          "values": false
+        },
+        "orientation": "vertical"
+      },
+      "targets": [
+        {
+          "expr": "sum(\r\n    ((sum by(pod_name)(rate(container_cpu_usage_seconds_total{namespace=~\"^$namespace\",container_name=\"\"}[1m])))\r\n    * on(pod_name)\r\n    (label_join(kube_pod_labels{namespace=~\"^$namespace\",label_seldon_app=~\".+\",label_active=\"true\",label_serviceId=~\"^$serviceId\",label_modelId=~\"^$modelId\",label_tenantId=~\"^$tenantId\"}, \"pod_name\", \",\", \"pod\")))\r\n)\r\n/ \r\nsum(\r\n\t(sum by(pod) (kube_pod_container_resource_limits{namespace=~\"^$namespace\",resource=\"cpu\"}))\r\n\t* on(pod)\r\n    (kube_pod_labels{namespace=~\"^$namespace\",label_seldon_app=~\".+\",label_active=\"true\",label_serviceId=~\"^$serviceId\",label_modelId=~\"^$modelId\",label_tenantId=~\"^$tenantId\"})\r\n)*100",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "",
+      "type": "bargauge"
+    },
+    {
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "id": 7,
+      "links": [],
+      "options": {
+        "displayMode": "gradient",
+        "fieldOptions": {
+          "calcs": [
+            "last"
+          ],
+          "defaults": {
+            "max": 100,
+            "min": 0,
+            "title": "",
+            "unit": "percent"
+          },
+          "mappings": [],
+          "override": {},
+          "thresholds": [
+            {
+              "color": "green",
+              "index": 0,
+              "value": null
+            },
+            {
+              "color": "red",
+              "index": 1,
+              "value": 80
+            }
+          ],
+          "values": false
+        },
+        "orientation": "vertical"
+      },
+      "targets": [
+        {
+          "expr": "sum (container_accelerator_duty_cycle{namespace=~\"^$namespace\"} * on(pod_name)(label_join(kube_pod_labels{namespace=~\"^$namespace\",label_apsapp=~\".+\",label_active=\"true\",label_serviceId=~\"^$serviceId\",label_modelId=~\"^$modelId\",label_tenantId=~\"^$tenantId\"} ,\"pod_name\",\",\",\"pod\")))/ sum((sum by(pod) (kube_pod_container_resource_limits{namespace=~\"^$namespace\",resource=\"nvidia_com_gpu\"})) * on(pod) (kube_pod_labels{namespace=~\"^$namespace\",label_seldon_app=~\".+\",label_active=\"true\",label_serviceId=~\"^$serviceId\",label_modelId=~\"^$modelId\",label_tenantId=~\"^$tenantId\"}))*100",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "",
+      "type": "bargauge"
+    },
+    {
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "id": 8,
+      "links": [],
+      "options": {
+        "displayMode": "gradient",
+        "fieldOptions": {
+          "calcs": [
+            "last"
+          ],
+          "defaults": {
+            "max": 100,
+            "min": 0,
+            "title": "",
+            "unit": "percent"
+          },
+          "mappings": [],
+          "override": {},
+          "thresholds": [
+            {
+              "color": "green",
+              "index": 0,
+              "value": null
+            },
+            {
+              "color": "red",
+              "index": 1,
+              "value": 80
+            }
+          ],
+          "values": false
+        },
+        "orientation": "vertical"
+      },
+      "targets": [
+        {
+          "expr": "sum(\r\n(sum by(pod_name) (container_memory_working_set_bytes{image!=\"\",name=~\"^k8s_.*\",namespace=~\"^$namespace\",container_name=~\".*\"})\r\n* on(pod_name)\r\n(label_join(kube_pod_labels{namespace=~\"^$namespace\",label_seldon_app=~\".+\",label_active=~\"true\",label_serviceId=~\"^$serviceId\",label_modelId=~\"^$modelId\",label_tenantId=~\"^$tenantId\"}, \"pod_name\", \",\", \"pod\")))\r\n)\r\n/\r\nsum(\r\n\t(sum by(pod) (kube_pod_container_resource_limits{namespace=~\"^$namespace\",resource=\"memory\"}))\r\n\t* on(pod)\r\n    (kube_pod_labels{namespace=~\"^$namespace\",label_seldon_app=~\".+\",label_active=\"true\",label_serviceId=~\"^$serviceId\",label_modelId=~\"^$modelId\",label_tenantId=~\"^$tenantId\"})\r\n)*100",
+          "format": "time_series",
+          "instant": false,
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "",
+      "type": "bargauge"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 18,
+  "style": "dark",
+  "tags": [
+    "aps"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "default",
+        "definition": "label_values(namespace)",
+        "hide": 0,
+        "includeAll": true,
+        "label": null,
+        "multi": false,
+        "name": "namespace",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "aps-autotest",
+            "value": "aps-autotest"
+          },
+          {
+            "selected": false,
+            "text": "aps-os-dev",
+            "value": "aps-os-dev"
+          },
+          {
+            "selected": false,
+            "text": "aps-os-test",
+            "value": "aps-os-test"
+          },
+          {
+            "selected": true,
+            "text": "aps-serving-dev",
+            "value": "aps-serving-dev"
+          },
+          {
+            "selected": false,
+            "text": "aps-serving-test",
+            "value": "aps-serving-test"
+          },
+          {
+            "selected": false,
+            "text": "aps-training-dev",
+            "value": "aps-training-dev"
+          },
+          {
+            "selected": false,
+            "text": "aps-training-test",
+            "value": "aps-training-test"
+          },
+          {
+            "selected": false,
+            "text": "default",
+            "value": "default"
+          },
+          {
+            "selected": false,
+            "text": "gitlab",
+            "value": "gitlab"
+          },
+          {
+            "selected": false,
+            "text": "jenkins",
+            "value": "jenkins"
+          },
+          {
+            "selected": false,
+            "text": "kube-public",
+            "value": "kube-public"
+          },
+          {
+            "selected": false,
+            "text": "kube-system",
+            "value": "kube-system"
+          },
+          {
+            "selected": false,
+            "text": "monitoring",
+            "value": "monitoring"
+          },
+          {
+            "selected": false,
+            "text": "rook-ceph",
+            "value": "rook-ceph"
+          },
+          {
+            "selected": false,
+            "text": "rook-ceph-system",
+            "value": "rook-ceph-system"
+          }
+        ],
+        "query": "label_values(namespace)",
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "default",
+        "definition": "",
+        "hide": 0,
+        "includeAll": true,
+        "label": null,
+        "multi": false,
+        "name": "projectId",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          }
+        ],
+        "query": "",
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "default",
+        "definition": "",
+        "hide": 0,
+        "includeAll": true,
+        "label": null,
+        "multi": false,
+        "name": "serviceId",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          }
+        ],
+        "query": "",
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "default",
+        "definition": "",
+        "hide": 0,
+        "includeAll": true,
+        "label": null,
+        "multi": false,
+        "name": "modelId",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          }
+        ],
+        "query": "",
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "MYDS_Prometheus",
+        "definition": "",
+        "hide": 0,
+        "includeAll": true,
+        "label": null,
+        "multi": false,
+        "name": "tenantId",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          }
+        ],
+        "query": "",
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "default",
+        "definition": "",
+        "hide": 0,
+        "includeAll": true,
+        "label": null,
+        "multi": false,
+        "name": "k8sNamespace",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          }
+        ],
+        "query": "",
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "",
+  "title": "aps_model_online_status",
+  "uid": "sW41NnJWz",
+  "version": 63
+}

@@ -1,0 +1,22 @@
+alertmanager:
+  persistentVolume:
+    enabled: false
+  service:
+    type: NodePort
+    nodePort: 31001
+
+server:
+  persistentVolume:
+    enabled: true
+    size: 100Gi
+  service:
+    type: NodePort
+    nodePort: 31000
+  replicaCount: 1
+
+pushgateway:
+  enabled: true
+
+kubeStateMetrics:
+  image:
+    repository: registry.aps.datacanvas.com:5000/aps/service/monitor/kube-state-metrics
