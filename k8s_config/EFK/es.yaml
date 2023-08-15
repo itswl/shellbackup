@@ -49,7 +49,7 @@ spec:
         fsGroup: 1001
       containers:
         - name: metrics
-          image: imwl/elasticsearch-exporter:1.6.0-debian-11-r24
+          image: registry.bap.datacanvas.com:55443/kube-package/elasticsearch-exporter:1.6.0-debian-11-r24
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -116,12 +116,10 @@ data:
     pid.file: /opt/bitnami/kibana/tmp/kibana.pid
     server.host: "::"
     server.port: 5601
-    i18n.locale: zh-CN 
-    server.publicBaseUrl: "http://elasticsearch-kibana:5601"
     elasticsearch.hosts: [http://elasticsearch:9200]
     server.rewriteBasePath: true  # 添加后，deploy 的健康检查也要添加 urlprefix
-    server.basePath: "/imwl/kibana"
-    server.publicBaseUrl: "http://elasticsearch-kibana:5601/imwl/kibana"
+    server.basePath: "/bap/kibana"
+    server.publicBaseUrl: "http://elasticsearch-kibana:5601/bap/kibana"
 ---
 # Source: elasticsearch/charts/kibana/templates/pvc.yaml
 kind: PersistentVolumeClaim
@@ -382,7 +380,7 @@ spec:
       initContainers:
       containers:
         - name: kibana
-          image: imwl/kibana:7.17.9-debian-11-r9
+          image: registry.bap.datacanvas.com:55443/kube-package/kibana:8.8.2-debian-11-r23
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true
@@ -418,7 +416,7 @@ spec:
             successThreshold: 1
             timeoutSeconds: 5
             httpGet:
-              path: /imwl/kibana/login
+              path: /bap/kibana/login
               port: http
               scheme: HTTP
           readinessProbe:
@@ -428,7 +426,7 @@ spec:
             successThreshold: 1
             timeoutSeconds: 5
             httpGet:
-              path: /imwl/kibana/status
+              path: /bap/kibana/status
               port: http
               scheme: HTTP
           resources:
@@ -462,7 +460,7 @@ metadata:
     ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
     app: coordinating-only
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app.kubernetes.io/name: elasticsearch
@@ -498,7 +496,7 @@ spec:
       initContainers:
         ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
         - name: sysctl
-          image: imwl/os-shell:11-debian-11-r16
+          image: registry.bap.datacanvas.com:55443/kube-package/os-shell:11-debian-11-r16
           imagePullPolicy: "IfNotPresent"
           command:
             - /bin/bash
@@ -522,7 +520,7 @@ spec:
             requests: {}
       containers:
         - name: elasticsearch
-          image: imwl/elasticsearch:7.17.9-debian-11-r0
+          image: registry.bap.datacanvas.com:55443/kube-package/es_ik:7.17.9-debian-11-r0
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -547,9 +545,9 @@ spec:
             - name: ELASTICSEARCH_CLUSTER_HOSTS
               value: "elasticsearch-master-hl.elasticsearch.svc.cluster.local,elasticsearch-coordinating-hl.elasticsearch.svc.cluster.local,elasticsearch-data-hl.elasticsearch.svc.cluster.local,elasticsearch-ingest-hl.elasticsearch.svc.cluster.local,"
             - name: ELASTICSEARCH_TOTAL_NODES
-              value: "4"
+              value: "6"
             - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
-              value: elasticsearch-master-0 elasticsearch-master-1 
+              value: elasticsearch-master-0 elasticsearch-master-1 elasticsearch-master-2 
             - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
               value: "2"
             - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
@@ -642,7 +640,7 @@ spec:
       initContainers:
         ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
         - name: sysctl
-          image: imwl/os-shell:11-debian-11-r16
+          image: registry.bap.datacanvas.com:55443/kube-package/os-shell:11-debian-11-r16
           imagePullPolicy: "IfNotPresent"
           command:
             - /bin/bash
@@ -666,7 +664,7 @@ spec:
             requests: {}
       containers:
         - name: elasticsearch
-          image: imwl/elasticsearch:7.17.9-debian-11-r0
+          image: registry.bap.datacanvas.com:55443/kube-package/es_ik:7.17.9-debian-11-r0
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -691,9 +689,9 @@ spec:
             - name: ELASTICSEARCH_CLUSTER_HOSTS
               value: "elasticsearch-master-hl.elasticsearch.svc.cluster.local,elasticsearch-coordinating-hl.elasticsearch.svc.cluster.local,elasticsearch-data-hl.elasticsearch.svc.cluster.local,elasticsearch-ingest-hl.elasticsearch.svc.cluster.local,"
             - name: ELASTICSEARCH_TOTAL_NODES
-              value: "4"
+              value: "6"
             - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
-              value: elasticsearch-master-0 elasticsearch-master-1 
+              value: elasticsearch-master-0 elasticsearch-master-1 elasticsearch-master-2 
             - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
               value: "2"
             - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
@@ -759,7 +757,7 @@ metadata:
     ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
     app: ingest
 spec:
-  replicas: 2
+  replicas: 3
   podManagementPolicy: Parallel
   selector:
     matchLabels:
@@ -795,7 +793,7 @@ spec:
       initContainers:
         ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
         - name: sysctl
-          image: imwl/os-shell:11-debian-11-r16
+          image: registry.bap.datacanvas.com:55443/kube-package/os-shell:11-debian-11-r16
           imagePullPolicy: "IfNotPresent"
           command:
             - /bin/bash
@@ -819,7 +817,7 @@ spec:
             requests: {}
       containers:
         - name: elasticsearch
-          image: imwl/elasticsearch:7.17.9-debian-11-r0
+          image: registry.bap.datacanvas.com:55443/kube-package/es_ik:7.17.9-debian-11-r0
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -844,9 +842,9 @@ spec:
             - name: ELASTICSEARCH_CLUSTER_HOSTS
               value: "elasticsearch-master-hl.elasticsearch.svc.cluster.local,elasticsearch-coordinating-hl.elasticsearch.svc.cluster.local,elasticsearch-data-hl.elasticsearch.svc.cluster.local,elasticsearch-ingest-hl.elasticsearch.svc.cluster.local,"
             - name: ELASTICSEARCH_TOTAL_NODES
-              value: "4"
+              value: "6"
             - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
-              value: elasticsearch-master-0 elasticsearch-master-1 
+              value: elasticsearch-master-0 elasticsearch-master-1 elasticsearch-master-2 
             - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
               value: "2"
             - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
@@ -903,7 +901,7 @@ metadata:
     ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
     app: master
 spec:
-  replicas: 2
+  replicas: 3
   podManagementPolicy: Parallel
   selector:
     matchLabels:
@@ -939,7 +937,7 @@ spec:
       initContainers:
         ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
         - name: sysctl
-          image: imwl/os-shell:11-debian-11-r16
+          image: registry.bap.datacanvas.com:55443/kube-package/os-shell:11-debian-11-r16
           imagePullPolicy: "IfNotPresent"
           command:
             - /bin/bash
@@ -963,7 +961,7 @@ spec:
             requests: {}
       containers:
         - name: elasticsearch
-          image: imwl/elasticsearch:7.17.9-debian-11-r0
+          image: registry.bap.datacanvas.com:55443/kube-package/es_ik:7.17.9-debian-11-r0
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsNonRoot: true
@@ -988,9 +986,9 @@ spec:
             - name: ELASTICSEARCH_CLUSTER_HOSTS
               value: "elasticsearch-master-hl.elasticsearch.svc.cluster.local,elasticsearch-coordinating-hl.elasticsearch.svc.cluster.local,elasticsearch-data-hl.elasticsearch.svc.cluster.local,elasticsearch-ingest-hl.elasticsearch.svc.cluster.local,"
             - name: ELASTICSEARCH_TOTAL_NODES
-              value: "4"
+              value: "6"
             - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
-              value: elasticsearch-master-0 elasticsearch-master-1 
+              value: elasticsearch-master-0 elasticsearch-master-1 elasticsearch-master-2 
             - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
               value: "2"
             - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
@@ -1078,6 +1076,7 @@ spec:
       app.kubernetes.io/name: elasticsearch
       app.kubernetes.io/instance: elasticsearch
       app.kubernetes.io/component: metrics
+      release: prometheus
   endpoints:
     - port: http-metrics
   namespaceSelector:
