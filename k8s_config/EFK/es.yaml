@@ -120,6 +120,7 @@ data:
     server.rewriteBasePath: true  # 添加后，deploy 的健康检查也要添加 urlprefix
     server.basePath: "/bap/kibana"
     server.publicBaseUrl: "http://elasticsearch-kibana:5601/bap/kibana"
+    i18n.locale: zh-CN 
 ---
 # Source: elasticsearch/charts/kibana/templates/pvc.yaml
 kind: PersistentVolumeClaim
@@ -380,7 +381,7 @@ spec:
       initContainers:
       containers:
         - name: kibana
-          image: registry.bap.datacanvas.com:55443/kube-package/kibana:8.8.2-debian-11-r23
+          image: registry.bap.datacanvas.com:55443/kube-package/kibana:7.17.9-debian-11-r9
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true
