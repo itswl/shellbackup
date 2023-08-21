@@ -32,7 +32,7 @@ data:
         Name              tail
         Tag               kube.*
         Path              /var/log/containers/*.log
-        Parser            docker
+        Parser            cri
         DB                /var/log/flb_kube.db
         Mem_Buf_Limit     5MB
         Skip_Long_Lines   On
@@ -50,7 +50,8 @@ data:
         Merge_Log_Key       log_processed
         K8S-Logging.Parser  On
         K8S-Logging.Exclude Off
-
+        Buffer_Size         64KB
+        
   output-elasticsearch.conf: |
     [OUTPUT]
         Name es
@@ -63,7 +64,7 @@ data:
         HTTP_Passwd Zetyun_2021!
         Logstash_Format On
         Retry_Limit False
-        Buffer_Size 256KB
+        Buffer_Size 64KB
 
   parsers.conf: |
     [PARSER]
