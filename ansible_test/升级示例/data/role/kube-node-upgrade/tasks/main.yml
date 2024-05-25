@@ -1,0 +1,157 @@
+- name: 创建kube-node 相关目录
+  file: name={{ item }} state=directory
+  with_items:
+  - /var/lib/kubelet
+  - /var/lib/kube-proxy
+  - /etc/cni/net.d
+
+- name: 下载 kubelet,kube-proxy 二进制和基础 cni plugins
+  copy: src={{ upgrade_dir }}/bin/{{ item }} dest={{ bin_dir }}/{{ item }} mode=0755
+  with_items:
+  - kubectl
+  - kubelet
+  - kube-proxy
+  - bridge
+  - host-local
+  - loopback
+  tags: upgrade_k8s
+
+# - name: 替换 kubeconfig 的 apiserver 地址
+#   lineinfile:
+#     dest: /root/.kube/config
+#     regexp: "^    server"
+#     line: "    server: {{ KUBE_APISERVER }}"
+
+##----------kubelet 配置部分--------------
+# 创建 kubelet 相关证书及 kubelet.kubeconfig
+- import_tasks: create-kubelet-kubeconfig.yml
+
+- name: 准备 cni配置文件
+  template: src=cni-default.conf.j2 dest=/etc/cni/net.d/10-default.conf
+
+- name: 注册变量 DNS_SVC_IP
+  shell: echo {{ SERVICE_CIDR }}|cut -d/ -f1|awk -F. '{print $1"."$2"."$3"."$4+2}'
+  register: DNS_SVC_IP
+
+- name: 设置变量 CLUSTER_DNS_SVC_IP
+  set_fact: CLUSTER_DNS_SVC_IP={{ DNS_SVC_IP.stdout }}
+
+- name: 创建kubelet的配置文件
+  template: src=kubelet-config.yaml.j2 dest=/var/lib/kubelet/config.yaml
+  tags: upgrade_k8s, restart_node
+
+- name: 创建kubelet的systemd unit文件
+  template: src=kubelet.service.j2 dest=/etc/systemd/system/kubelet.service
+  tags: upgrade_k8s, restart_node
+
+- name: 开机启用kubelet 服务
+  shell: systemctl enable kubelet
+  ignore_errors: true
+
+- name: 开启kubelet 服务
+  shell: systemctl daemon-reload && systemctl restart kubelet
+  tags: upgrade_k8s, restart_node
+
+##-------kube-proxy部分----------------
+# - name: 替换 kube-proxy.kubeconfig 的 apiserver 地址
+#   lineinfile:
+#     dest: /etc/kubernetes/ssl/kube-proxy.kubeconfig
+#     regexp: "^    server"
+#     line: "    server: {{ KUBE_APISERVER }}"
+
+
+- name: 分发 kube-proxy.kubeconfig 文件
+  copy: src={{ ca_dir }}/{{ item }} dest={{ ca_dir }}/{{ item }}
+  with_items:
+  - kube-proxy.kubeconfig
+  tags: upgrade_k8s
+
+- name: 创建kube-proxy 配置
+  template: src=kube-proxy-config.yaml.j2 dest=/var/lib/kube-proxy/kube-proxy-config.yaml
+  tags: reload-kube-proxy, restart_node, upgrade_k8s
+
+- name: 创建kube-proxy 服务文件
+  template: src=kube-proxy.service.j2 dest=/etc/systemd/system/kube-proxy.service
+  tags: reload-kube-proxy, restart_node, upgrade_k8s
+
+- name: 开机启用kube-proxy 服务
+  shell: systemctl enable kube-proxy
+  ignore_errors: true
+
+- name: 开启kube-proxy 服务
+  shell: systemctl daemon-reload && systemctl restart kube-proxy
+  tags: reload-kube-proxy, upgrade_k8s, restart_node
+
+# 轮询等待kube-proxy启动完成
+- name: 轮询等待kube-proxy启动
+  shell: "systemctl status kube-proxy.service|grep Active"
+  register: kubeproxy_status
+  until: '"running" in kubeproxy_status.stdout'
+  retries: 4
+  delay: 2
+  tags: reload-kube-proxy, upgrade_k8s, restart_node
+
+# 轮询等待kubelet启动完成
+- name: 轮询等待kubelet启动
+  shell: "systemctl status kubelet.service|grep Active"
+  register: kubelet_status
+  until: '"running" in kubelet_status.stdout'
+  retries: 4
+  delay: 2
+  tags: reload-kube-proxy, upgrade_k8s, restart_node
+
+- name: 轮询等待node达到Ready状态
+  shell: "{{ bin_dir }}/kubectl get node {{ inventory_hostname }}|awk 'NR>1{print $2}'"
+  register: node_status
+  until: node_status.stdout == "Ready" or node_status.stdout == "Ready,SchedulingDisabled"
+  retries: 8 
+  delay: 8
+  tags: upgrade_k8s, restart_node
+
+- name: 设置node节点role
+  shell: "{{ bin_dir }}/kubectl label node {{ inventory_hostname }} kubernetes.io/role=node --overwrite"
+  ignore_errors: true
+
+- block:
+    - name: 获取已下载离线镜像信息
+      command: "ls {{ upgrade_dir }}/images"
+      register: download_info
+      connection: local
+
+    - name: 创建 升级镜像目录
+      file:
+        path: /opt/kube/images-upgrade
+        state: directory
+
+    - name: 推送 离线镜像信息
+      copy: src={{ upgrade_dir }}/images/{{ item }} dest=/opt/kube/images-upgrade/{{ item }}
+      with_items:
+      - calico_cni_v3.15.3.tar 
+      - calico_kube_controllers_v3.15.3.tar
+      - calico_node_v3.15.3.tar
+      - calico_pod2daemon_flexvol_v3.15.3.tar
+      - coredns_1.7.1.tar
+      - dashboard_metrics_scraper_v1.0.6.tar
+      - dashboard_v2.1.0.tar
+      - kube_pause_3.2.tar
+      - metrics-server_v0.3.6.tar
+      tags: upgrade_k8s
+
+    - name: 获取dnscache离线镜像推送情况
+      command: "ls /opt/kube/images-upgrade"
+      register: image_info
+
+    - name: 导入dnscache的离线镜像（若执行失败，可忽略）
+      shell: "{{ bin_dir }}/docker load -i /opt/kube/images-upgrade/{{ item }}"
+      with_items:
+      - calico_cni_v3.15.3.tar 
+      - calico_kube_controllers_v3.15.3.tar
+      - calico_node_v3.15.3.tar
+      - calico_pod2daemon_flexvol_v3.15.3.tar
+      - coredns_1.7.1.tar
+      - dashboard_metrics_scraper_v1.0.6.tar
+      - dashboard_v2.1.0.tar
+      - kube_pause_3.2.tar
+      - metrics-server_v0.3.6.tar
+
+  when: "ENABLE_LOCAL_DNS_CACHE|bool"

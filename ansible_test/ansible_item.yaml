@@ -1,0 +1,9 @@
+- hosts: k8s_master
+  remote_user: root
+  tasks:
+  - name: add users
+    user: name={{ item }}
+    with_items:
+    - user10
+    - user20
+    - user30

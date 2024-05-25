@@ -1,0 +1,1085 @@
+---
+# Source: elasticsearch/templates/metrics/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch-metrics
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: metrics
+    ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+    app: metrics
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch
+      app.kubernetes.io/instance: elasticsearch
+      app.kubernetes.io/component: metrics
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: elasticsearch
+        helm.sh/chart: elasticsearch-19.10.6
+        app.kubernetes.io/instance: elasticsearch
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: metrics
+        ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+        app: metrics
+      annotations:
+        prometheus.io/port: "9114"
+        prometheus.io/scrape: "true"
+    spec:
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: metrics
+          image: registry.bap.datacanvas.com:55443/kube-package/elasticsearch-exporter:1.6.0-debian-11-r24
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            []
+          args:
+            - --es.uri=http://elasticsearch:9200
+            - --es.all
+            - --es.ssl-skip-verify
+          env:
+          envFrom:
+          ports:
+            - name: metrics
+              containerPort: 9114
+          livenessProbe:
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+            httpGet:
+              path: /metrics
+              port: metrics
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+            httpGet:
+              path: /metrics
+              port: metrics
+          resources:
+            limits: {}
+            requests: {}
+---
+# Source: elasticsearch/charts/kibana/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: elasticsearch-kibana
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: kibana
+    helm.sh/chart: kibana-10.4.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+---
+# Source: elasticsearch/charts/kibana/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elasticsearch-kibana-conf
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: kibana
+    helm.sh/chart: kibana-10.4.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+data:
+  kibana.yml: |
+    pid.file: /opt/bitnami/kibana/tmp/kibana.pid
+    server.host: "::"
+    server.port: 5601
+    elasticsearch.hosts: [http://elasticsearch:9200]
+    server.rewriteBasePath: true  # 添加后，deploy 的健康检查也要添加 urlprefix
+    server.basePath: "/bap/kibana"
+    server.publicBaseUrl: "http://elasticsearch-kibana:5601/bap/kibana"
+    i18n.locale: zh-CN 
+---
+# Source: elasticsearch/charts/kibana/templates/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: elasticsearch-kibana
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: kibana
+    helm.sh/chart: kibana-10.4.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "10Gi"
+  storageClassName: local-path
+---
+# Source: elasticsearch/charts/kibana/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-kibana
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: kibana
+    helm.sh/chart: kibana-10.4.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 5601
+      targetPort: http
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: kibana
+    app.kubernetes.io/instance: elasticsearch
+---
+# Source: elasticsearch/templates/coordinating/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-coordinating-hl
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: coordinating-only
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-rest-api
+      port: 9200
+      targetPort: rest-api
+    - name: tcp-transport
+      port: 9300
+      targetPort: transport
+  selector:
+    app.kubernetes.io/name: elasticsearch
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/component: coordinating-only
+---
+# Source: elasticsearch/templates/data/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-data-hl
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: data
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-rest-api
+      port: 9200
+      targetPort: rest-api
+    - name: tcp-transport
+      port: 9300
+      targetPort: transport
+  selector:
+    app.kubernetes.io/name: elasticsearch
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/component: data
+---
+# Source: elasticsearch/templates/ingest/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-ingest-hl
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: ingest
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-rest-api
+      port: 9200
+      targetPort: rest-api
+    - name: tcp-transport
+      port: 9300
+      targetPort: transport
+  selector:
+    app.kubernetes.io/name: elasticsearch
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/component: ingest
+---
+# Source: elasticsearch/templates/master/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-master-hl
+  namespace: "elasticsearch"
+  labels: 
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-rest-api
+      port: 9200
+      targetPort: rest-api
+    - name: tcp-transport
+      port: 9300
+      targetPort: transport
+  selector:
+    app.kubernetes.io/name: elasticsearch
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/component: master
+---
+# Source: elasticsearch/templates/metrics/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-metrics
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: metrics
+  annotations: 
+    prometheus.io/port: "9114"
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-metrics
+      port: 9114
+      targetPort: metrics
+  selector:
+    app.kubernetes.io/name: elasticsearch
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/component: metrics
+---
+# Source: elasticsearch/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: coordinating-only
+  annotations:
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: tcp-rest-api
+      port: 9200
+      targetPort: rest-api
+      nodePort: null
+    - name: tcp-transport
+      port: 9300
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: elasticsearch
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/component: coordinating-only
+---
+# Source: elasticsearch/charts/kibana/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch-kibana
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: kibana
+    helm.sh/chart: kibana-10.4.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kibana
+      app.kubernetes.io/instance: elasticsearch
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kibana
+        helm.sh/chart: kibana-10.4.6
+        app.kubernetes.io/instance: elasticsearch
+        app.kubernetes.io/managed-by: Helm
+        app: kibana
+    spec:
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: kibana
+                    app.kubernetes.io/instance: elasticsearch
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: elasticsearch-kibana
+      initContainers:
+      containers:
+        - name: kibana
+          image: registry.bap.datacanvas.com:55443/kube-package/kibana:7.17.9-debian-11-r9
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: KIBANA_PORT_NUMBER
+              value: "5601"
+            - name: KIBANA_ELASTICSEARCH_URL
+              value: "http://elasticsearch:9200"
+            - name: KIBANA_ELASTICSEARCH_PORT_NUMBER
+              value: "9200"
+            - name: KIBANA_FORCE_INITSCRIPTS
+              value: "false"
+            - name: KIBANA_SERVER_ENABLE_TLS
+              value: "false"
+            - name: KIBANA_ELASTICSEARCH_ENABLE_TLS
+              value: "false"
+            - name: KIBANA_ELASTICSEARCH_TLS_USE_PEM
+              value: "false"
+            - name: KIBANA_ELASTICSEARCH_TLS_VERIFICATION_MODE
+              value: "full"
+          envFrom:
+          ports:
+            - name: http
+              containerPort: 5601
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /bap/kibana/login
+              port: http
+              scheme: HTTP
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /bap/kibana/status
+              port: http
+              scheme: HTTP
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: kibana-data
+              mountPath: /bitnami/kibana
+            - name: kibana-config
+              mountPath: /bitnami/kibana/conf
+      volumes:
+        - name: kibana-data
+          persistentVolumeClaim:
+            claimName: elasticsearch-kibana
+        - name: kibana-config
+          configMap:
+            name: elasticsearch-kibana-conf
+---
+# Source: elasticsearch/templates/coordinating/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch-coordinating
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: coordinating-only
+    ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+    app: coordinating-only
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch
+      app.kubernetes.io/instance: elasticsearch
+      app.kubernetes.io/component: coordinating-only
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: elasticsearch-coordinating-hl
+  podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: elasticsearch
+        helm.sh/chart: elasticsearch-19.10.6
+        app.kubernetes.io/instance: elasticsearch
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: coordinating-only
+        ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+        app: coordinating-only
+      annotations:
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
+        - name: sysctl
+          image: registry.bap.datacanvas.com:55443/kube-package/os-shell:11-debian-11-r16
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              CURRENT=`sysctl -n vm.max_map_count`;
+              DESIRED="262144";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w vm.max_map_count=262144;
+              fi;
+              CURRENT=`sysctl -n fs.file-max`;
+              DESIRED="65536";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w fs.file-max=65536;
+              fi;
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          resources:
+            limits: {}
+            requests: {}
+      containers:
+        - name: elasticsearch
+          image: registry.bap.datacanvas.com:55443/kube-package/es_ik:7.17.9-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: ELASTICSEARCH_CLUSTER_NAME
+              value: "elastic"
+            - name: ELASTICSEARCH_IS_DEDICATED_NODE
+              value: "yes"
+            - name: ELASTICSEARCH_NODE_ROLES
+              value: ""
+            - name: ELASTICSEARCH_TRANSPORT_PORT_NUMBER
+              value: "9300"
+            - name: ELASTICSEARCH_HTTP_PORT_NUMBER
+              value: "9200"
+            - name: ELASTICSEARCH_CLUSTER_HOSTS
+              value: "elasticsearch-master-hl.elasticsearch.svc.cluster.local,elasticsearch-coordinating-hl.elasticsearch.svc.cluster.local,elasticsearch-data-hl.elasticsearch.svc.cluster.local,elasticsearch-ingest-hl.elasticsearch.svc.cluster.local,"
+            - name: ELASTICSEARCH_TOTAL_NODES
+              value: "6"
+            - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
+              value: elasticsearch-master-0 elasticsearch-master-1 elasticsearch-master-2 
+            - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
+              value: "2"
+            - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
+              value: "$(MY_POD_NAME).elasticsearch-coordinating-hl.elasticsearch.svc.cluster.local"
+            - name: ELASTICSEARCH_HEAP_SIZE
+              value: "128m"
+          ports:
+            - name: rest-api
+              containerPort: 9200
+            - name: transport
+              containerPort: 9300
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          resources:
+            limits: {}
+            requests:
+              cpu: 25m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/elasticsearch/data
+      volumes:
+        - name: "data"
+          emptyDir: {}
+---
+# Source: elasticsearch/templates/data/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch-data
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: data
+    ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+    app: data
+spec:
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch
+      app.kubernetes.io/instance: elasticsearch
+      app.kubernetes.io/component: data
+  serviceName: elasticsearch-data-hl
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: elasticsearch
+        helm.sh/chart: elasticsearch-19.10.6
+        app.kubernetes.io/instance: elasticsearch
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: data
+        ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+        app: data
+      annotations:
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
+        - name: sysctl
+          image: registry.bap.datacanvas.com:55443/kube-package/os-shell:11-debian-11-r16
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              CURRENT=`sysctl -n vm.max_map_count`;
+              DESIRED="262144";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w vm.max_map_count=262144;
+              fi;
+              CURRENT=`sysctl -n fs.file-max`;
+              DESIRED="65536";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w fs.file-max=65536;
+              fi;
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          resources:
+            limits: {}
+            requests: {}
+      containers:
+        - name: elasticsearch
+          image: registry.bap.datacanvas.com:55443/kube-package/es_ik:7.17.9-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ELASTICSEARCH_IS_DEDICATED_NODE
+              value: "yes"
+            - name: ELASTICSEARCH_NODE_ROLES
+              value: "data"
+            - name: ELASTICSEARCH_TRANSPORT_PORT_NUMBER
+              value: "9300"
+            - name: ELASTICSEARCH_HTTP_PORT_NUMBER
+              value: "9200"
+            - name: ELASTICSEARCH_CLUSTER_NAME
+              value: "elastic"
+            - name: ELASTICSEARCH_CLUSTER_HOSTS
+              value: "elasticsearch-master-hl.elasticsearch.svc.cluster.local,elasticsearch-coordinating-hl.elasticsearch.svc.cluster.local,elasticsearch-data-hl.elasticsearch.svc.cluster.local,elasticsearch-ingest-hl.elasticsearch.svc.cluster.local,"
+            - name: ELASTICSEARCH_TOTAL_NODES
+              value: "6"
+            - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
+              value: elasticsearch-master-0 elasticsearch-master-1 elasticsearch-master-2 
+            - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
+              value: "2"
+            - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
+              value: "$(MY_POD_NAME).elasticsearch-data-hl.elasticsearch.svc.cluster.local"
+            - name: ELASTICSEARCH_HEAP_SIZE
+              value: "1024m"
+          ports:
+            - name: rest-api
+              containerPort: 9200
+            - name: transport
+              containerPort: 9300
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          resources:
+            limits: {}
+            requests:
+              cpu: 25m
+              memory: 2048Mi
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/elasticsearch/data
+      volumes:
+  volumeClaimTemplates:
+    - metadata:
+        name: "data"
+        annotations:
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+        storageClassName: local-path
+---
+# Source: elasticsearch/templates/ingest/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch-ingest
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: ingest
+    ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+    app: ingest
+spec:
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch
+      app.kubernetes.io/instance: elasticsearch
+      app.kubernetes.io/component: ingest
+  serviceName: elasticsearch-ingest-hl
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: elasticsearch
+        helm.sh/chart: elasticsearch-19.10.6
+        app.kubernetes.io/instance: elasticsearch
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: ingest
+        ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+        app: ingest
+      annotations:
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
+        - name: sysctl
+          image: registry.bap.datacanvas.com:55443/kube-package/os-shell:11-debian-11-r16
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              CURRENT=`sysctl -n vm.max_map_count`;
+              DESIRED="262144";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w vm.max_map_count=262144;
+              fi;
+              CURRENT=`sysctl -n fs.file-max`;
+              DESIRED="65536";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w fs.file-max=65536;
+              fi;
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          resources:
+            limits: {}
+            requests: {}
+      containers:
+        - name: elasticsearch
+          image: registry.bap.datacanvas.com:55443/kube-package/es_ik:7.17.9-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ELASTICSEARCH_IS_DEDICATED_NODE
+              value: "yes"
+            - name: ELASTICSEARCH_NODE_ROLES
+              value: "ingest"
+            - name: ELASTICSEARCH_TRANSPORT_PORT_NUMBER
+              value: "9300"
+            - name: ELASTICSEARCH_HTTP_PORT_NUMBER
+              value: "9200"
+            - name: ELASTICSEARCH_CLUSTER_NAME
+              value: "elastic"
+            - name: ELASTICSEARCH_CLUSTER_HOSTS
+              value: "elasticsearch-master-hl.elasticsearch.svc.cluster.local,elasticsearch-coordinating-hl.elasticsearch.svc.cluster.local,elasticsearch-data-hl.elasticsearch.svc.cluster.local,elasticsearch-ingest-hl.elasticsearch.svc.cluster.local,"
+            - name: ELASTICSEARCH_TOTAL_NODES
+              value: "6"
+            - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
+              value: elasticsearch-master-0 elasticsearch-master-1 elasticsearch-master-2 
+            - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
+              value: "2"
+            - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
+              value: "$(MY_POD_NAME).elasticsearch-ingest-hl.elasticsearch.svc.cluster.local"
+            - name: ELASTICSEARCH_HEAP_SIZE
+              value: "128m"
+          ports:
+            - name: rest-api
+              containerPort: 9200
+            - name: transport
+              containerPort: 9300
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          resources:
+            limits: {}
+            requests:
+              cpu: 25m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/elasticsearch/data
+      volumes:
+        - name: "data"
+          emptyDir: {}
+---
+# Source: elasticsearch/templates/master/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch-master
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+    ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+    app: master
+spec:
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch
+      app.kubernetes.io/instance: elasticsearch
+      app.kubernetes.io/component: master
+  serviceName: elasticsearch-master-hl
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: elasticsearch
+        helm.sh/chart: elasticsearch-19.10.6
+        app.kubernetes.io/instance: elasticsearch
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: master
+        ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+        app: master
+      annotations:
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
+        - name: sysctl
+          image: registry.bap.datacanvas.com:55443/kube-package/os-shell:11-debian-11-r16
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              CURRENT=`sysctl -n vm.max_map_count`;
+              DESIRED="262144";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w vm.max_map_count=262144;
+              fi;
+              CURRENT=`sysctl -n fs.file-max`;
+              DESIRED="65536";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w fs.file-max=65536;
+              fi;
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          resources:
+            limits: {}
+            requests: {}
+      containers:
+        - name: elasticsearch
+          image: registry.bap.datacanvas.com:55443/kube-package/es_ik:7.17.9-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ELASTICSEARCH_IS_DEDICATED_NODE
+              value: "yes"
+            - name: ELASTICSEARCH_NODE_ROLES
+              value: "master"
+            - name: ELASTICSEARCH_TRANSPORT_PORT_NUMBER
+              value: "9300"
+            - name: ELASTICSEARCH_HTTP_PORT_NUMBER
+              value: "9200"
+            - name: ELASTICSEARCH_CLUSTER_NAME
+              value: "elastic"
+            - name: ELASTICSEARCH_CLUSTER_HOSTS
+              value: "elasticsearch-master-hl.elasticsearch.svc.cluster.local,elasticsearch-coordinating-hl.elasticsearch.svc.cluster.local,elasticsearch-data-hl.elasticsearch.svc.cluster.local,elasticsearch-ingest-hl.elasticsearch.svc.cluster.local,"
+            - name: ELASTICSEARCH_TOTAL_NODES
+              value: "6"
+            - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
+              value: elasticsearch-master-0 elasticsearch-master-1 elasticsearch-master-2 
+            - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
+              value: "2"
+            - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
+              value: "$(MY_POD_NAME).elasticsearch-master-hl.elasticsearch.svc.cluster.local"
+            - name: ELASTICSEARCH_HEAP_SIZE
+              value: "128m"
+          ports:
+            - name: rest-api
+              containerPort: 9200
+            - name: transport
+              containerPort: 9300
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/elasticsearch/data
+      volumes:
+  volumeClaimTemplates:
+    - metadata:
+        name: "data"
+        annotations:
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+        storageClassName: local-path
+---
+# Source: elasticsearch/templates/metrics/prometheusrule.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: elasticsearch
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: metrics
+    release: prometheus
+spec:
+  groups:
+  - name: elasticsearch
+    rules:
+      []
+---
+# Source: elasticsearch/templates/metrics/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: elasticsearch-metrics
+  namespace: "elasticsearch"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.6
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: metrics
+    release: prometheus
+spec:
+  jobLabel: ""
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch
+      app.kubernetes.io/instance: elasticsearch
+      app.kubernetes.io/component: metrics
+      release: prometheus
+  endpoints:
+    - port: http-metrics
+  namespaceSelector:
+    matchNames:
+      - "elasticsearch"

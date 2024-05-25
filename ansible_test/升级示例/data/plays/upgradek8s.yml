@@ -1,0 +1,88 @@
+
+
+# check k8s version
+- hosts: kube-master
+  become: true
+  tasks:
+  - name: get running k8s version
+    shell: "{{ bin_dir }}/kube-apiserver --version"
+    register: RUNNING_VER
+    run_once: true
+
+  - name: print running version
+    debug: var="RUNNING_VER.stdout"
+    run_once: true
+
+  - name: get update version
+    shell: "{{ upgrade_dir }}/bin/kube-apiserver --version"
+    register: UPDATE_VER
+    run_once: true
+    connection: local
+
+  - name: print update version
+    debug: var="UPDATE_VER.stdout"
+    run_once: true
+
+#  - name: check version
+#    fail: msg="running version is the same as the update version, UPDATE ABORT."
+#    when: "RUNNING_VER.stdout == UPDATE_VER.stdout"
+
+- hosts: localhost
+  become: true
+  tasks:
+  - name: judge a file or dir is exits
+    shell: 'ls /etc/etcd/backup/snapshot.db'
+    ignore_errors: true
+    register: result
+
+
+  - name: Check /etc/etcd/backup/snapshot.db
+    fail: msg="please backup first"
+    when:  result.rc != 0
+
+# 准备升级需要的各种 kubeconfig 文件，之前的部分参数失效
+- hosts:
+  - localhost
+  become: true
+  roles:
+  - { role: ../roles/prepare-upgrade }
+
+
+# 停止 master 的服务
+- hosts: kube-master
+  become: true
+  tasks:
+  - name: stopping kube-master services
+    service: name={{ item }} state=stopped
+    with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+
+# 停止 node 和 master 的 kubelet 和 kube-proxy
+- hosts:
+  - kube-master
+  - kube-node
+  become: true
+  tasks:
+  - name: stopping kube-node services
+    service: name={{ item }} state=stopped
+    with_items:
+    - kubelet
+    - kube-proxy
+
+
+# update masters
+- hosts:
+  - kube-master
+  become: true
+  roles:
+  - { role: ../roles/kube-master-upgrade }
+  - { role: ../roles/kube-node-upgrade }
+
+# update nodes
+- hosts:
+  - kube-node
+  become: true
+  roles:
+  - { role: ../roles/kube-node-upgrade, when: "inventory_hostname not in groups['kube-master']" }

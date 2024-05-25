@@ -1,0 +1,3 @@
+# k8s升级相关配置
+upgrade_dir: "{{ playbook_dir }}/../../share/upgrade_k8s"
+#

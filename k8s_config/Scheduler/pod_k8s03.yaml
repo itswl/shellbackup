@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myweb
+spec:
+  replicas: 7
+  selector:
+    matchLabels:
+      app: myweb
+  template:
+    metadata:
+      labels:
+        app: myweb
+    spec:
+      nodeName: k8s03  # 指定 Node 节点
+      containers:
+      - name: myweb
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80

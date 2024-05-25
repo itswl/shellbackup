@@ -1,0 +1,159 @@
+bind-address: '*'                     # 监听IP白名单，可绑定单个IPv4和v6地址，"*" 为绑定所有IP地址，仅在将allow-lan设置为true时适用
+unified-delay: false                  # 统一延迟，更换延迟计算方式，去除握手等额外延迟
+tcp-concurrent: true                  #【Meta专属】TCP 并发连接所有 IP, 将使用最快握手的 TCP
+keep-alive-interval: 15               #  TCP keep alive interval
+skip-auth-prefixes:                   # 设置跳过验证的IP段
+  - 127.0.0.1/8
+  - ::1/128
+
+geodata-mode: true                    #【Meta专属】使用geoip.dat数据库(默认：false使用mmdb数据库)
+geox-url:                             # 自定义 geodata url, 需要有代理的前提才能下载geoip和geosite
+  geoip: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip-lite.dat"
+  geosite: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat"
+  mmdb: "https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/Country.mmdb"
+geo-auto-update: true                 # 是否自动更新 geodata
+geo-update-interval: 24               # 更新间隔，单位：小时
+
+find-process-mode: strict             # 匹配所有进程（always/strict/off）
+global-client-fingerprint: chrome     # 全局 TLS 指纹，优先低于 proxy 内的 client-fingerprint
+                                      # 可选： "chrome","firefox","safari","ios","random","none" options.
+profile:
+  store-selected: true                # 存储 select 选择记录
+  store-fake-ip: true                 # 持久化 fake-ip
+
+sniffer:                              # 嗅探域名 可选配置
+  enable: true
+  parse-pure-ip: true                 # 是否使用嗅探结果作为实际访问，默认 true
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
+  force-domain: []                    # 强制对此域名进行嗅探
+  skip-domain: ['Mijia Cloud']        # 跳过对此域名进行嗅探
+
+tun:                                  # Tun 配置
+  enable: true
+  stack: gvisor                       # 可选： system/gvisor/mixed
+                                      # tun模式堆栈,如无使用问题,建议使用 system 栈;
+  dns-hijack: [any:53]                # dns劫持,一般设置为 any:53 即可, 即劫持所有53端口的udp流量
+  strict-route: true                  # 将所有连接路由到tun来防止泄漏，但你的设备将无法被其他设备访问
+  auto-route: true                    # 自动设置全局路由，可以自动将全局流量路由进入tun网卡。
+  auto-detect-interface: true         # 自动识别出口网卡
+  inet4-route-exclude-address:
+  - 192.168.0.0/16
+  - 127.0.0.0/8
+  
+dns:
+  enable: true                        # 关闭将使用系统 DNS
+  ipv6: false                         # IPV6解析开关；如果为false，将返回ipv6结果为空
+  enhanced-mode: fake-ip              # 模式：redir-host或fake-ip
+  listen: :1053                       # DNS 监听地
+  fake-ip-range: 198.18.0.1/16        # fakeip 下的 IP 段设置，tun 网卡的默认 ip 也使用此值
+  fake-ip-filter: ['*', '+.lan', '+.local', '+.msftncsi.com', '+.msftconnecttest.com']
+                                      # Fake-ip 过滤，列表中的域名返回真实IP
+  proxy-server-nameserver: [https://dns.alidns.com/dns-query, https://doh.pub/dns-query]
+                                      # 代理DNS服务器，支持udp/tcp/dot/doh/doq
+  nameserver-policy:
+   "geosite:cn,private": [https://doh.pub/dns-query, https://dns.alidns.com/dns-query]
+                                      # 指定域名查询的解析服务器，可使用 geosite, 优先于 nameserver/fallback 查询
+  nameserver: [https://dns.alidns.com/dns-query, https://doh.pub/dns-query]
+                                      # 默认DNS服务器，支持udp/tcp/dot/doh/doq
+  fallback: [tls://8.8.4.4, tls://1.1.1.1]
+                                      # fallbaack DNS服务器，支持udp/tcp/dot/doh/doq
+  fallback-filter: { geoip: true, geoip-code: CN, ipcidr: [240.0.0.0/4, 0.0.0.0/32] }
+
+rule-providers:
+  reject:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt"
+    path: ./ruleset/reject.yaml
+    interval: 86400
+
+  icloud:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/icloud.txt"
+    path: ./ruleset/icloud.yaml
+    interval: 86400
+
+  apple:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt"
+    path: ./ruleset/apple.yaml
+    interval: 86400
+
+  google:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt"
+    path: ./ruleset/google.yaml
+    interval: 86400
+
+  proxy:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt"
+    path: ./ruleset/proxy.yaml
+    interval: 86400
+
+  direct:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt"
+    path: ./ruleset/direct.yaml
+    interval: 86400
+
+  private:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt"
+    path: ./ruleset/private.yaml
+    interval: 86400
+
+  gfw:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt"
+    path: ./ruleset/gfw.yaml
+    interval: 86400
+
+  tld-not-cn:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/tld-not-cn.txt"
+    path: ./ruleset/tld-not-cn.yaml
+    interval: 86400
+
+  telegramcidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt"
+    path: ./ruleset/telegramcidr.yaml
+    interval: 86400
+
+  cncidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt"
+    path: ./ruleset/cncidr.yaml
+    interval: 86400
+
+  lancidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt"
+    path: ./ruleset/lancidr.yaml
+    interval: 86400
+
+  applications:
+    type: http
+    behavior: classical
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt"
+    path: ./ruleset/applications.yaml
+    interval: 86400

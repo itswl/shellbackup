@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:  
+  name: log-config  
+  namespace: default
+data: 
+  log_level: INFO
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx-test
+spec:  
+  replicas: 1
+  selector:
+    matchLabels:
+      run: my-nginx  
+  template:
+    metadata:      
+      labels:        
+        run: my-nginx    
+    spec:      
+      containers:      
+      - name: my-nginx      
+        image: nginx:1.7.9        
+        ports:      
+          - containerPort: 80        
+        volumeMounts:        
+        - name: config-volume        
+          mountPath: /etc/config      
+      volumes:        
+      - name: config-volume          
+        configMap:            
+          name: log-config

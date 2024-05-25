@@ -1,0 +1,34 @@
+dashboards:
+  default:
+#    APS_MODEL_RUNNING_STATES:
+#      file: dashboards/aps_model_runing_status.json
+#    APS_MODEL_ONLINE_STATES:
+#      file: dashboards/aps_model_online_status.json
+#    APS_MONITOR_SYSTEM_RESOURCE:
+#      file: dashboards/aps_monitor_system_resource.json
+#    APS_MONITOR_TENANT_RESOURCE:
+#      file: dashboards/aps_monitor_tenant_resource.json
+#    APS_SPARK_RESOURCE_NOTEBOOK:
+#      file: dashboards/aps_spark_resource_ide_notebook.json
+    CEPH_METRICS:
+      file: dashboards/Ceph_Metrics.json
+    ETCD_METRICS:
+      file: dashboards/Etcd_Metrics.json
+    HOST_METRICS:
+      file: dashboards/Host_Metrics.json
+    K8S_CLUSTER_METRICS:
+      file: dashboards/K8S_Cluster_Metrics.json
+    K8S_RESOURCE_METRICS:
+      file: dashboards/K8S_Resource_Metrics.json
+    MAIN_METRICS:
+      file: dashboards/Main_Metrics.json
+    POSTGRESQL_METRICS:
+      file: dashboards/PostgreSQL_Metrics.json
+#    RABBITMQ_METRICS:
+#      file: dashboards/RabbitMQ_Metrics.json
+#    REDIS_METRICS:
+#      file: dashboards/Redis_Metrics.json
+    STOLON_KEEPER:
+      file: dashboards/stolon-keeper.json
+    STOLON_SENTINEL:
+      file: dashboards/stolon-sentinel.json

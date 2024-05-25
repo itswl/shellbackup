@@ -1,0 +1,27 @@
+[k8s]
+192.168.43.10[1:5]
+
+[k8s_master]
+192.168.43.101
+192.168.43.104
+192.168.43.105
+
+[k8s_node]
+192.168.43.102
+192.168.43.103
+
+[vps]
+tj.imwl.ml:8822
+api.imwl.ga
+	
+[password]
+192.168.43.10[1:5] ansible_ssh_user=root ansible_ssh_pass=12345678
+
+# vars 是固定关键字写法
+[k8s_node:vars] 
+ansible_ssh_user=root 
+ansible_ssh_pass=12345678
+
+[vps:vars]
+ansible_ssh_user=root
+ansible_ssh_pass=123456

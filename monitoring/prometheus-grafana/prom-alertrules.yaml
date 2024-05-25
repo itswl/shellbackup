@@ -1,0 +1,117 @@
+serverFiles:
+  alerts:
+    groups:
+    - name: host_status_alert
+      rules:
+      - alert: 主机宕机
+        expr: up{job="node-exporter"} == 0
+        for: 1m
+        labels:
+          severity: 'critical'
+        annotations:
+          summary: "主机{{ $labels.instance }}宕机"  
+          description: "主机{{ $labels.instance }}宕机超过1分钟告警!"
+
+      - alert: CPU使用过高
+        expr: 100-(avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) by(instance)* 100) > 80
+        for: 5m
+        labels:
+          severity: 'warning'
+        annotations:
+          summary: "主机{{ $labels.instance }}CPU使用率过高"       
+          description: "主机{{ $labels.instance }}当前CPU使用率是{{ $value }}%，CPU使用率大于80%告警!"
+
+      - alert: 内存使用过高
+        expr: ((node_memory_MemTotal_bytes- node_memory_MemFree_bytes - node_memory_Buffers_bytes - node_memory_Cached_bytes) / (node_memory_MemTotal_bytes )) * 100 > 80
+        for: 5m
+        labels:
+          severity: 'warning'
+        annotations:
+          summary: "主机{{ $labels.instance }}内存使用率过高" 
+          description: "主机{{ $labels.instance }}当前内存使用率是{{ $value }}%，内存使用率大于80%告警!"
+
+      - alert: 磁盘空间剩余不足
+        expr: (1-(node_filesystem_free_bytes{fstype=~"ext4|xfs|ceph",mountpoint!~"/var.*"} / node_filesystem_size_bytes{fstype=~"ext4|xfs|ceph",mountpoint!~"/var.*"})) * 100 > 80
+        for: 5m
+        labels:
+          severity: 'warning'
+        annotations:
+          summary: "主机{{ $labels.instance }}的磁盘{{ $labels.mountpoint }}可以空间不足"
+          description: "主机{{ $labels.instance }}的磁盘{{ $labels.mountpoint }}当前使用率是{{ $value }},磁盘使用率大于80%告警!"
+
+      - alert: TCP连接数过多
+        expr: node_netstat_Tcp_CurrEstab > 1000
+        for: 5m
+        labels:
+          severity: 'page'
+        annotations:
+          summary: "主机{{ $labels.instance }}TCP连接数过多" 
+          description: "主机{{ $labels.instance }}当前TCP_ESTABLISHED={{ $value }},TCP连接数大于1000告警!"
+
+
+    - name: pod_status_alert
+      rules:
+      - alert: RabbitMQ实例宕机
+        expr: rabbitmq_up{kubernetes_name="rabbit-rabbitmq-ha"} == 0
+        for: 5m
+        labels:
+          severity: 'critical'
+        annotations:
+          summary: "RabbitMQ实例{{ $labels.instance }}宕机"
+          description: "RabbitMQ实例{{ $labels.instance }}当前rabbitmq_up状态是{{ $value }},实例宕机告警!"
+
+      - alert: RabbitMQ内存使用过高
+        expr: rabbitmq_node_mem_used / rabbitmq_node_mem_limit * 100 > 90
+        for: 1m
+        labels:
+          severity: 'critical'
+        annotations:
+          summary: "RabbitMQ实例{{ $labels.instance }}内存使用率过高"
+          description: "RabbitMQ实例{{ $labels.instance }}当前内存使用率是{{ $value }}，可用内存小于10%告警!"
+
+      - alert: RabbitMQ连接数过多
+        expr: rabbitmq_node_mem_used / rabbitmq_node_mem_limit * 100 > 90
+        for: 5m
+        labels:
+          severity: 'critical'
+        annotations:
+          summary: "RabbitMQ实例{{ $labels.instance }} 连接数过多"
+          description: "RabbitMQ实例{{ $labels.instance }}当前连接数是{{ $value }},连接数大于1000告警!"
+    
+    - name: stolon-keeper.rules
+      rules:
+      - alert: StolonKeeperStaleSync
+        expr: >
+          stolon_cluster_identifier * ignoring(cluster_name, component) group_right(cluster_name) (
+            time() - stolon_keeper_last_sync_success_seconds
+          ) > 120
+        labels:
+          severity: critical
+        annotations:
+          summary: ">1m since successful keeper sync on {{ $labels.instance }}"
+          dashboard: &dashboardStolonKeeper 0LgcjLRZz
+          description: |
+
+            stolon-keeper periodically attempts to sync the local Postgres to
+            the state it receives from the store. This alert will fire when it
+            has been more than 2m since the keeper successfully completed a
+            sync.
+
+            Check the keeper logs to identify the problem.
+
+      - alert: StolonKeeperRequiresRestart
+        expr: >
+          stolon_cluster_identifier * ignoring(cluster_name, component) group_right(cluster_name) (
+            stolon_keeper_needs_restart == 1
+          )
+        labels:
+          severity: critical
+        annotations:
+          summary: Postgres is pending restart
+          dashboard: *dashboardStolonKeeper
+          description: |
+
+            stolon-keeper manages Postgres configuration, along with Postgres
+            reload and restarts. This alert is firing when a keeper is reporting
+            a required restart that it's been unable to automatically apply.
+

@@ -1,0 +1,6 @@
+- hosts: k8s_master
+  remote_user: root
+  tasks:
+  - name: IP -> Host
+    debug: msg={{ ansible_fqdn }}
+    when: ansible_os_family == 'RedHat'

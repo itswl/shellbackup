@@ -1,0 +1,66 @@
+- hosts: localhost
+  become: true
+  tasks:
+  - name: judge a file or dir is exits
+    shell: 'ls /etc/etcd/backup/snapshot.db'
+    ignore_errors: true
+    register: result
+
+
+  - name: Check /etc/etcd/backup/snapshot.db
+    fail: msg="please backup first"
+    when:  result.rc != 0
+
+
+
+# 停止 master 的服务
+- hosts: kube-master
+  become: true
+  tasks:
+  - name: stopping kube_master services
+    service: name={{ item }} state=stopped
+    with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+
+# 停止 node 和 master 的 kubelet 和 kube-proxy
+- hosts:
+  - kube-master
+  - kube-node
+  become: true
+  tasks:
+  - name: stopping kube_node services
+    service: name={{ item }} state=stopped
+    with_items:
+    - kubelet
+    - kube-proxy
+
+# 备份 etcd 数据 并恢复，详细见 role 文件中的 cluster-restore
+- hosts: etcd
+  become: true
+  roles:
+    - { role: ../roles/cluster-restore }
+
+# 重启 k8s master 服务
+- hosts: kube-master
+  become: true
+  tasks:
+  - name: starting kube_master services
+    service: name={{ item }} state=started enabled=yes
+    with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+
+# 重启  node 和 master 的 kubelet 和 kube-proxy
+- hosts:
+  - kube-master
+  - kube-node
+  become: true
+  tasks:
+  - name: starting kube_node services
+    service: name={{ item }} state=started enabled=yes
+    with_items:
+    - kubelet
+    - kube-proxy

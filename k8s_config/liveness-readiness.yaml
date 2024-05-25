@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:  
+  name: liveness-readiness-pod  
+  namespace: default
+spec:  
+  containers:  
+  - name: liveness-readiness-container    
+    image: nginx:1.7.9      
+    imagePullPolicy: IfNotPresent    
+    readinessProbe:      # 关键字
+      httpGet:        
+        port: 80        
+        path: /index1.html      
+      initialDelaySeconds: 1  # 触发延时
+      periodSeconds: 3  # 重试间隔时间
+    livenessProbe:      
+      httpGet:        
+        port: 80        
+        path: /index.html      
+      initialDelaySeconds: 1      
+      periodSeconds: 3      
+      timeoutSeconds: 10
+    startupProbe:
+      httpGet:
+        path: /index.html
+        port: 80
+      failureThreshold: 3
+      periodSeconds: 2

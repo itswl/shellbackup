@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myweb02
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: myweb
+  template:
+    metadata:
+      labels:
+        app: myweb
+    spec:
+      nodeSelector:
+        disk: ssd # 标签
+      containers:
+      - name: myweb
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80

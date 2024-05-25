@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: probe-tcp80
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.7.9 
+    livenessProbe:      
+      initialDelaySeconds: 5      
+      timeoutSeconds: 1      
+      tcpSocket:        
+        port: 80

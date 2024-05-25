@@ -1,0 +1,42 @@
+alertmanagerFiles:
+  alertmanager.yml:
+    global:
+      smtp_smarthost: 'smtp.partner.outlook.cn:587'  ## 163邮箱配置smtp.163.com:465
+      smtp_from: 'apssupport@zetyun.com'
+      smtp_auth_username: 'apssupport@zetyun.com'
+      smtp_auth_password: 'Jzyj123456'
+      smtp_require_tls: true    ## 163邮箱配置false
+
+    templates:
+      - '/etc/config/*.tmpl'
+
+    route:
+      group_by: ['alertname', 'pod_name']
+      group_wait: 10s
+      group_interval: 5m
+      receiver: wechat
+      #receiver: dingtalk
+      repeat_interval: 1h
+
+    receivers:
+    - name: 'wechat'
+      wechat_configs:
+      - send_resolved: true
+        api_url: 'https://qyapi.weixin.qq.com/cgi-bin/'
+        api_secret: 'dNJUDiGhndJ6-Ahm9qk3TnFRLOwKdERuQFgsK51WQMc'
+        corp_id: 'wwf8fa7bcfaabfed52'
+        agent_id: '1000012'
+        to_user: '@all' 
+        message: '{{ template "wechat.default.message" . }}'
+
+    - name: 'AlertMail'
+      email_configs:
+      - to: 'apssupport@zetyun.com'  ## 多个收件人使用逗号分隔
+        send_resolved: true
+
+    - name: dingtalk
+      webhook_configs:
+      - send_resolved: false
+        # 需要运行插件 dingtalk-webhook.yaml，详情阅读 docs/guide/prometheus.md
+        url: http://webhook-dingtalk.monitoring.svc.cluster.local:8060/dingtalk/webhook1/send
+

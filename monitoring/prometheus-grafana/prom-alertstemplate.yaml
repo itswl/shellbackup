@@ -1,0 +1,42 @@
+alertmanagerFiles:
+  wechat.tmpl: |
+    {{- define "__text_alert_list" -}}
+    {{- range .Alerts.Firing -}}
+    发送告警:
+    告警级别: {{ .Labels.severity }}
+    告警类型: {{ .Labels.alertname }}
+    故障主机: {{ .Labels.instance }}
+    告警主题: {{ .Annotations.summary }}
+    告警详情: {{ .Annotations.description }}
+    触发时间: {{ (.StartsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}
+    {{ end }}
+
+    {{- range .Alerts.Resolved -}}
+    告警恢复:
+    告警级别: {{ .Labels.severity }}
+    告警类型: {{ .Labels.alertname }}
+    故障主机: {{ .Labels.instance }}
+    告警主题: {{ .Annotations.summary }}
+    触发时间: {{ (.StartsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}
+    恢复时间: {{ (.EndsAt.Add 28800e9).Format "2006-01-02 15:04:05" }}
+    {{ end }}
+    {{- end }}
+    
+    {{- define "wechat.default.message" -}}
+    {{- if gt (len .Alerts.Firing) 0 -}}
+    {{ template "__text_alert_list" . }}
+    {{- end }}
+    {{- if gt (len .Alerts.Resolved) 0 -}}
+    {{ template "__text_alert_list" . }}
+    {{- end }}
+    {{- end }}
+
+  email.tmpl: |
+    {{ define "email.html" }}
+    <table>
+        <tr><td>报警名</td><td>开始时间</td></tr>
+        {{ range $i, $alert := .Alerts }}
+            <tr><td>{{ index $alert.Labels "alertname" }}</td><td>{{ $alert.StartsAt }}</td></tr>
+        {{ end }}
+    </table>
+    {{ end }}

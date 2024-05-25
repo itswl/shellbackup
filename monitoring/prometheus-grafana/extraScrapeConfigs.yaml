@@ -1,0 +1,22 @@
+- job_name: etcd
+  scheme: https
+  tls_config:
+    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    insecure_skip_verify: true
+  static_configs:
+  - targets:
+    - 172.20.19.16:2379
+    - 172.20.19.18:2379
+    - 172.20.19.19:2379
+  metric_relabel_configs:
+  - source_labels: [__name__]
+    regex: '(etcd_debugging.*|go_gc_duration.*|go_memstats.*|grpc_server_handled.*)'
+    action: drop
+
+- job_name: node-exporter
+  static_configs:
+  - targets:
+    - 172.20.19.16:9100
+    - 172.20.19.18:9100
+    - 172.20.19.19:9100
+

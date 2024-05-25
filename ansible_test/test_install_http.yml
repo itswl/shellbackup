@@ -1,0 +1,10 @@
+- hosts: k8s_master
+  remote_user: root
+  vars:
+  - package: httpd
+  - service: httpd
+  tasks:
+  - name: install {{ package }}
+    yum: name={{ package }} state=latest
+  - name: start {{ service }}
+    systemd: name={{ service }} enabled=yes state=started

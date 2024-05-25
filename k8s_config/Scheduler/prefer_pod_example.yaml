@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: affinity
+  labels: 
+    app: node-affinity-pod
+spec:
+  containers:
+  - name: with-node-affinity
+    image: nginx:1.7.9
+  affinity:            #亲和性
+    nodeAffinity:        #node亲和性
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 1   #权重，权重越大越亲和(多个软策略的情况)
+
+        preference: 
+          matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - k8s03
