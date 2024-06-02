@@ -1,5 +1,3 @@
-// Define the `main` function
-
 function main(params) {
 
   // 香港地区
@@ -141,7 +139,7 @@ function main(params) {
   // 漏网之鱼
   const Final = { name: "Final", type: "select", proxies: ["DIRECT", "Global", "Proxy"], icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Final.png" };
   // 手动选择
-  const Proxy = { name: "Proxy", type: "select", proxies: allProxies.length > 0 ? [...allProxies, "Balance"] : ["DIRECT"], icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Proxy.png" };
+  const Proxy = { name: "Proxy", type: "select", proxies: allProxies.length > 0 ? ["Balance", ...allProxies] : ["DIRECT"], icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Proxy.png" };
   // 国外网站
   const Global = { name: "Global", type: "select", proxies: G, icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Global.png" };
   // 国内网站
@@ -193,6 +191,8 @@ function main(params) {
     "DOMAIN-SUFFIX,tjupt.org,DIRECT",
     "DOMAIN-SUFFIX,totheglory.im,DIRECT",
     "DOMAIN-SUFFIX,smtp,DIRECT",
+    "DOMAIN-SUFFIX,metacubex.one,DIRECT",
+    "DOMAIN,d.metacubex.one,DIRECT",
     "DOMAIN-SUFFIX,cube.weixinbridge.com,DIRECT",
     "DOMAIN-KEYWORD,announce,DIRECT",
     "DOMAIN-KEYWORD,torrent,DIRECT",
@@ -203,8 +203,6 @@ function main(params) {
     "PROCESS-NAME,tor,Global",
     "PROCESS-NAME,lyrebird,Global",
     "RULE-SET,applications,DIRECT",
-    "DOMAIN,clash.razord.top,DIRECT",
-    "DOMAIN,yacd.haishan.me,DIRECT",
     "RULE-SET,private,DIRECT",
     "RULE-SET,reject,REJECT",
     //"GEOSITE,Category-ads-all,REJECT",// 可能导致某些网站无法访问
