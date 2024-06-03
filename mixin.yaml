@@ -2,6 +2,7 @@ bind-address: '*'                     # 监听IP白名单，可绑定单个IPv4�
 unified-delay: false                  # 统一延迟，更换延迟计算方式，去除握手等额外延迟
 tcp-concurrent: true                  #【Meta专属】TCP 并发连接所有 IP, 将使用最快握手的 TCP
 keep-alive-interval: 15               #  TCP keep alive interval
+external-controller: 127.0.0.1:9090 
 skip-auth-prefixes:                   # 设置跳过验证的IP段
   - 127.0.0.1/8
   - ::1/128
