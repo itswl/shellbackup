@@ -50,7 +50,7 @@ tun:                                  # Tun 配置
 dns:
   enable: true                        # 关闭将使用系统 DNS
   ipv6: false                         # IPV6解析开关；如果为false，将返回ipv6结果为空
-  enhanced-mode: fake-ip              # 模式：redir-host或fake-ip
+  enhanced-mode: redir-host             # 模式：redir-host或fake-ip
   listen: :1053                       # DNS 监听地
   fake-ip-range: 198.18.0.1/16        # fakeip 下的 IP 段设置，tun 网卡的默认 ip 也使用此值
   fake-ip-filter: ['*', '+.lan', '+.local', '+.msftncsi.com', '+.msftconnecttest.com']
@@ -64,4 +64,15 @@ dns:
                                       # 默认DNS服务器，支持udp/tcp/dot/doh/doq
   fallback: [tls://8.8.4.4, tls://1.1.1.1]
                                       # fallbaack DNS服务器，支持udp/tcp/dot/doh/doq
-  fallback-filter: { geoip: true, geoip-code: CN, ipcidr: [240.0.0.0/4, 0.0.0.0/32] }
+  fallback-filter: 
+    geoip: true 
+    geoip-code: CN
+    ipcidr: [240.0.0.0/4, 0.0.0.0/32]
+    geosite:
+      - gfw
+      - Bing
+      - Openai
+      - Github
+      - Youtube
+      - Google
+      - Geolocation-!cn
