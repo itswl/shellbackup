@@ -202,25 +202,13 @@ function main(params) {
     "PROCESS-NAME,tor.real,Global",
     "PROCESS-NAME,tor,Global",
     "PROCESS-NAME,lyrebird,Global",
-    "RULE-SET,applications,DIRECT",
-    "RULE-SET,private,DIRECT",
-    "RULE-SET,reject,REJECT",
     //"GEOSITE,Category-ads-all,REJECT",// 可能导致某些网站无法访问
     "GEOSITE,Private,DIRECT",
     "GEOSITE,Bing,ArtIntel",
     "GEOSITE,Openai,ArtIntel",
-    "RULE-SET,icloud,DIRECT",
-    "RULE-SET,apple,DIRECT",
-    "RULE-SET,google,Google",
-    "RULE-SET,proxy,Global",
-    "RULE-SET,direct,DIRECT",
-    "RULE-SET,lancidr,DIRECT,no-resolve",
-    "RULE-SET,cncidr,DIRECT,no-resolve",
-    "RULE-SET,telegramcidr,Telegram,no-resolve",
     "GEOSITE,Category-games@cn,Mainland",
     "GEOSITE,Category-games,Games",
     "GEOSITE,Github,Global",
-    "GEOIP,Telegram,Telegram,no-resolve",
     "GEOSITE,Bilibili,BiliBili",
     "GEOSITE,Youtube,YouTube",
     "GEOSITE,Disney,Streaming",
@@ -232,10 +220,22 @@ function main(params) {
     "GEOSITE,Apple@cn,Mainland",
     "GEOSITE,Geolocation-!cn,Global",
     "GEOSITE,CN,Mainland",
-    "GEOIP,CN,Mainland,no-resolve",
+    "GEOSITE,twitter,PROXY",
+    "GEOSITE,pixiv,PROXY",
+    "GEOSITE,category-scholar-!cn,PROXY",
+    "GEOSITE,biliintl,PROXY",
+    "GEOSITE,onedrive,DIRECT",
+    "GEOSITE,microsoft@cn,DIRECT",
+    "GEOSITE,steam@cn,DIRECT"
+  #GEOIP规则
     "GEOIP,LAN,DIRECT,no-resolve",
-    "GEOIP,CN,DIRECT,no-resolve",
+    "GEOIP,private,DIRECT,no-resolve",
+    "GEOIP,Telegram,Telegram,no-resolve",
+    "GEOIP,CN,Mainland,no-resolve",
+    "DST-PORT,80/8080/443/8443,PROXY",
     "MATCH,Final"
+
+    
   ];
   // 插入规则
   params.rules = rules;
