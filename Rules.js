@@ -224,9 +224,9 @@ function main(params) {
     "GEOSITE,pixiv,PROXY",
     "GEOSITE,category-scholar-!cn,PROXY",
     "GEOSITE,biliintl,PROXY",
-    "GEOSITE,onedrive,DIRECT",
-    "GEOSITE,microsoft@cn,DIRECT",
-    "GEOSITE,steam@cn,DIRECT"
+    "GEOSITE,onedrive,Mainland",
+    "GEOSITE,microsoft@cn,Mainland",
+    "GEOSITE,steam@cn,Mainland"
   #GEOIP规则
     "GEOIP,LAN,DIRECT,no-resolve",
     "GEOIP,private,DIRECT,no-resolve",
