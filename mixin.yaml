@@ -34,8 +34,11 @@ sniffer:                              # 嗅探域名 可选配置
     QUIC:
       ports: [443, 8443]
   force-domain: []                    # 强制对此域名进行嗅探
-  skip-domain: ['Mijia Cloud']        # 跳过对此域名进行嗅探
-
+  skip-domain: 
+                                 #优先级比force-domain高
+    - 'Mijia Cloud'              #米家设备，建议加
+    - 'dlg.io.mi.com'
+    - '+.apple.com'              #苹果域名，建议加
 tun:                                  # Tun 配置
   enable: true
   stack: gvisor                       # 可选： system/gvisor/mixed
@@ -59,7 +62,7 @@ dns:
   proxy-server-nameserver: [https://dns.alidns.com/dns-query, https://doh.pub/dns-query]
                                       # 代理DNS服务器，支持udp/tcp/dot/doh/doq
   nameserver-policy:
-   "geosite:cn,private": [https://doh.pub/dns-query, https://dns.alidns.com/dns-query]
+    - "geosite:cn,private": [https://doh.pub/dns-query, https://dns.alidns.com/dns-query]
                                       # 指定域名查询的解析服务器，可使用 geosite, 优先于 nameserver/fallback 查询
   nameserver: [https://dns.alidns.com/dns-query, https://doh.pub/dns-query]
                                       # 默认DNS服务器，支持udp/tcp/dot/doh/doq
