@@ -228,7 +228,7 @@ function main(params) {
     "GEOIP,LAN,DIRECT,no-resolve",
     "GEOIP,private,DIRECT,no-resolve",
     "GEOIP,Telegram,Telegram,no-resolve",
-    "GEOIP,CN,DIRECT,no-resolve",
+    "GEOIP,CN,Mainland,no-resolve",
     "MATCH,Final"
   ];
 
