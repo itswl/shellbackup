@@ -229,7 +229,6 @@ function main(params) {
     "GEOIP,private,DIRECT,no-resolve",
     "GEOIP,Telegram,Telegram,no-resolve",
     "GEOIP,CN,DIRECT,no-resolve",
-    "DST-PORT,80/8080/443/8443,Global",
     "MATCH,Final"
   ];
 
@@ -275,7 +274,7 @@ const additionalConfig = {
   "allow-lan": true,
   "log-level": "silent",
   "ipv6": false,
-  "secret": "Wl19950707",
+  "secret": "password",
   "external-controller": "0.0.0.0:9090",
   "external-ui": "./ui",
   "unified-delay": false,
