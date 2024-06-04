@@ -228,7 +228,7 @@ function main(params) {
     "GEOIP,Telegram,Telegram,no-resolve",
     "GEOIP,LAN,DIRECT,no-resolve",
     "GEOIP,CN,DIRECT,no-resolve",
-    "DST-PORT,80/8080/443/8443,PROXY",
+    "DST-PORT,80/8080/443/8443,Global",
     "MATCH,Final"
   ];
 
