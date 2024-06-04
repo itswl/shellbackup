@@ -1,3 +1,6 @@
+// const fs = require('fs');
+// const yaml = require('js-yaml');
+
 function main(params) {
 
   // 香港地区
@@ -343,3 +346,14 @@ function getProxiesByRegex(params, regex) {
     .map((e) => e.name);
 }
 
+// 读取 old.yaml 文件
+// const oldConfig = yaml.load(fs.readFileSync('/tmp/old.yaml', 'utf8'));
+
+// 生成新的配置
+// const newConfig = main(oldConfig);
+
+
+// 写入 new.yaml 文件
+// fs.writeFileSync('/tmp/config.yaml', yaml.dump(newConfig), 'utf8');
+
+// console.log('新配置文件已生成: config.yaml');
