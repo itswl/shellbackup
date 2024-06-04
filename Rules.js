@@ -139,7 +139,7 @@ function main(params) {
   // 漏网之鱼
   const Final = { name: "Final", type: "select", proxies: ["DIRECT", "Global", "Proxy"], icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Final.png" };
   // 手动选择
-  const Proxy = { name: "Proxy", type: "select", proxies: allProxies.length > 0 ? ["Balance", ...allProxies] : ["DIRECT"], icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Proxy.png" };
+  const Proxy = { name: "Proxy", type: "select", proxies: allProxies.length > 0 ? [...allProxies, "Balance"] : ["DIRECT"], icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Proxy.png" };
   // 国外网站
   const Global = { name: "Global", type: "select", proxies: G, icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Global.png" };
   // 国内网站
@@ -166,6 +166,9 @@ function main(params) {
   // 规则
   const rules = [
     "AND,(AND,(DST-PORT,443),(NETWORK,UDP)),(NOT,((GEOIP,CN,no-resolve))),REJECT",// quic
+    "PROCESS-NAME,tor.real,Global",
+    "PROCESS-NAME,tor,Global",
+    "PROCESS-NAME,lyrebird,Global",
     "DOMAIN-SUFFIX,+.local,DIRECT",
     "DOMAIN-SUFFIX,awesome-hd.me,DIRECT",
     "DOMAIN-SUFFIX,broadcasthe.net,DIRECT",
@@ -191,17 +194,15 @@ function main(params) {
     "DOMAIN-SUFFIX,tjupt.org,DIRECT",
     "DOMAIN-SUFFIX,totheglory.im,DIRECT",
     "DOMAIN-SUFFIX,smtp,DIRECT",
-    "DOMAIN-SUFFIX,metacubex.one,DIRECT",
-    "DOMAIN,d.metacubex.one,DIRECT",
     "DOMAIN-SUFFIX,cube.weixinbridge.com,DIRECT",
     "DOMAIN-KEYWORD,announce,DIRECT",
     "DOMAIN-KEYWORD,torrent,DIRECT",
     "DOMAIN-KEYWORD,tracker,DIRECT",
     "DOMAIN,clash.razord.top,DIRECT",
+    "DOMAIN,d.metacubex.one,DIRECT",
     "DOMAIN,yacd.haishan.me,DIRECT",
-    "PROCESS-NAME,tor.real,Global",
-    "PROCESS-NAME,tor,Global",
-    "PROCESS-NAME,lyrebird,Global",
+    "DOMAIN,clash.razord.top,DIRECT",
+    "DOMAIN,yacd.metacubex.one,DIRECT",
     //"GEOSITE,Category-ads-all,REJECT",// 可能导致某些网站无法访问
     "GEOSITE,Private,DIRECT",
     "GEOSITE,Bing,ArtIntel",
@@ -209,6 +210,7 @@ function main(params) {
     "GEOSITE,Category-games@cn,Mainland",
     "GEOSITE,Category-games,Games",
     "GEOSITE,Github,Global",
+    "GEOIP,Telegram,Telegram,no-resolve",
     "GEOSITE,Bilibili,BiliBili",
     "GEOSITE,Youtube,YouTube",
     "GEOSITE,Disney,Streaming",
@@ -220,47 +222,117 @@ function main(params) {
     "GEOSITE,Apple@cn,Mainland",
     "GEOSITE,Geolocation-!cn,Global",
     "GEOSITE,CN,Mainland",
-    "GEOSITE,twitter,PROXY",
-    "GEOSITE,pixiv,PROXY",
-    "GEOSITE,category-scholar-!cn,PROXY",
-    "GEOSITE,biliintl,PROXY",
-    "GEOSITE,onedrive,Mainland",
-    "GEOSITE,microsoft@cn,Mainland",
-    "GEOSITE,steam@cn,Mainland"
-  #GEOIP规则
+    "GEOIP,CN,Mainland,no-resolve",
     "GEOIP,LAN,DIRECT,no-resolve",
     "GEOIP,private,DIRECT,no-resolve",
     "GEOIP,Telegram,Telegram,no-resolve",
-    "GEOIP,CN,Mainland,no-resolve",
+    "GEOIP,LAN,DIRECT,no-resolve",
+    "GEOIP,CN,DIRECT,no-resolve",
     "DST-PORT,80/8080/443/8443,PROXY",
     "MATCH,Final"
-
-    
   ];
-  // 插入规则
-  params.rules = rules;
 
-  /***
-   *** 使用远程规则资源示例
-   *** 使用时须在rules中添加对应规则
-   *** E.G
-       "RULE-SET,telegram_domain,Telegram",
-       "RULE-SET,telegram_ip,Telegram,no-resolve"
-   */
-  /***
-  // 远程规则类型
-  const ruleAnchor = {
-    ip: { type: 'http', interval: 86400, behavior: 'ipcidr', format: 'text' },
-    domain: { type: 'http', interval: 86400, behavior: 'domain', format: 'text' }
-  };
-  // 远程规则资源
-  const ruleProviders = {
-    telegram_domain: { ...ruleAnchor.domain, url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.list' },
-    telegram_ip: { ...ruleAnchor.ip, url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.list' }
-  };
-  // 插入远程规则
-  params["rule-providers"] = ruleProviders;
-   */
+  const newDnsConfig =  {
+  "dns": {
+    "enable": true,
+    "ipv6": false,
+    "enhanced-mode": "redir-host",
+    "listen": ":1053",
+    "fake-ip-range": "198.18.0.1/16",
+    "fake-ip-filter": ["*", "+.lan", "+.local", "+.msftncsi.com", "+.msftconnecttest.com"],
+    "proxy-server-nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
+    "nameserver-policy": {
+      "geosite:cn,private": ["https://doh.pub/dns-query", "https://dns.alidns.com/dns-query"]
+    },
+    "nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
+    "fallback": ["tls://8.8.4.4", "tls://1.1.1.1"],
+    "fallback-filter": {
+      "geoip": true,
+      "geoip-code": "CN",
+      "ipcidr": ["240.0.0.0/4", "0.0.0.0/32"],
+      "geosite": [
+        "gfw",
+        "Bing",
+        "Openai",
+        "Github",
+        "Youtube",
+        "Google",
+        "Geolocation-!cn"
+      ]
+    }
+  }
+}
+
+
+const additionalConfig = {
+  "bind-address": '*',
+  "mode": "rule",
+  "redir-port": 7895,
+  "mixed-port": 7890,
+  "socks-port": 7898,
+  "port": 7899,
+  "allow-lan": true,
+  "log-level": "silent",
+  "ipv6": false,
+  "secret": "Wl19950707",
+  "external-controller": "127.0.0.1:9090",
+  "external-ui": "./ui",
+  "unified-delay": false,
+  "tcp-concurrent": true,
+  "keep-alive-interval": 15,
+  "skip-auth-prefixes": ['127.0.0.1/8', '::1/128'],
+  "geodata-mode": true,
+  "geox-url": {
+    "geoip": "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip-lite.dat",
+    "geosite": "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat",
+    "mmdb": "https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/Country.mmdb"
+  },
+  "geo-auto-update": true,
+  "geo-update-interval": 24,
+  "find-process-mode": "strict",
+  "global-client-fingerprint": "chrome",
+  "profile": {
+    "store-selected": true,
+    "store-fake-ip": true
+  },
+  "sniffer": {
+    "enable": true,
+    "parse-pure-ip": true,
+    "sniff": {
+      "HTTP": {
+        "ports": [80, "8080-8880"],
+        "override-destination": true
+      },
+      "TLS": {
+        "ports": [443, 8443]
+      },
+      "QUIC": {
+        "ports": [443, 8443]
+      }
+    },
+    "force-domain": ['google.com'],
+    "skip-domain": ['Mijia Cloud','dlg.io.mi.com','+.apple.com']
+  },
+  "tun": {
+    "enable": true,
+    "stack": "gvisor",
+    "dns-hijack": ["any:53"],
+    "strict-route": true,
+    "auto-route": true,
+    "auto-detect-interface": true,
+    "inet4-route-exclude-address": ['192.168.0.0/16', '127.0.0.0/8','172.16.0.0/12','10.0.0.0/8','0.0.0.0/8']
+  }
+};
+
+
+  for (let key in additionalConfig) {
+    if (additionalConfig.hasOwnProperty(key)) {
+      params[key] = additionalConfig[key];
+    }
+  }
+
+  params.rules = rules;                                               
+  params.dns = newDnsConfig.dns;  
 
   return params;
 }
@@ -270,3 +342,4 @@ function getProxiesByRegex(params, regex) {
     .filter((e) => regex.test(e.name))
     .map((e) => e.name);
 }
+
