@@ -242,9 +242,10 @@ function main(params) {
     "fake-ip-filter": ["*", "+.lan", "+.local", "+.msftncsi.com", "+.msftconnecttest.com"],
     "proxy-server-nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
     "nameserver-policy": {
-      "geosite:cn,private": ["https://doh.pub/dns-query", "https://dns.alidns.com/dns-query"]
+      "geosite:cn,private": ["https://doh.pub/dns-query", "https://dns.alidns.com/dns-query"],
+      "geosite:geolocation-!cn,gfw,Bing,Openai,Github,Youtube,Google": ["https://dns.cloudflare.com/dns-query#dns", "https://dns.google/dns-query#dns"]
     },
-    "nameserver": ["https://dns.alidns.com/dns-query", "https://doh.pub/dns-query"],
+    "nameserver": ["https://dns.cloudflare.com/dns-query#dns", "https://dns.google/dns-query#dns"],
     "fallback": ["tls://8.8.4.4", "tls://1.1.1.1"],
     "fallback-filter": {
       "geoip": true,
@@ -341,7 +342,6 @@ function getProxiesByRegex(params, regex) {
     .filter((e) => regex.test(e.name))
     .map((e) => e.name);
 }
-
 // 读取 old.yaml 文件
 // const oldConfig = yaml.load(fs.readFileSync('/tmp/old.yaml', 'utf8'));
 
