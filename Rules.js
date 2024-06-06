@@ -245,7 +245,7 @@ function main(params) {
       "geosite:cn,private": ["https://doh.pub/dns-query", "https://dns.alidns.com/dns-query"],
       "geosite:geolocation-!cn,gfw,Bing,Openai,Github,Youtube,Google": ["https://dns.cloudflare.com/dns-query#dns", "https://dns.google/dns-query#dns"]
     },
-    "nameserver": ["https://dns.cloudflare.com/dns-query#dns", "https://dns.google/dns-query#dns"],
+    "nameserver": ["https://doh.pub/dns-query", "https://dns.alidns.com/dns-query"],
     "fallback": ["tls://8.8.4.4", "tls://1.1.1.1"],
     "fallback-filter": {
       "geoip": true,
@@ -275,8 +275,9 @@ const additionalConfig = {
   "allow-lan": true,
   "log-level": "silent",
   "ipv6": false,
-  "secret": "Wl19950707",
+  "secret": "password",
   "external-controller": "127.0.0.1:9090",
+  "external-ui": "./ui",
   "unified-delay": false,
   "tcp-concurrent": true,
   "keep-alive-interval": 15,
