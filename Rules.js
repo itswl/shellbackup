@@ -321,7 +321,9 @@ const additionalConfig = {
     "strict-route": true,
     "auto-route": true,
     "auto-detect-interface": true,
-    "inet4-route-exclude-address": ['192.168.0.0/16', '127.0.0.0/8','172.16.0.0/12','10.0.0.0/8','0.0.0.0/8']
+    "inet4-route-exclude-address": ['192.168.0.0/16', '127.0.0.0/8','172.16.0.0/12','10.0.0.0/8','0.0.0.0/8'],
+    "device": "Meta",
+    "mtu": 1500
   }
 };
 
