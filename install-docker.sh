@@ -1,7 +1,7 @@
 ARCH=$(uname -m)
 DOCKER_VER=25.0.3
 DOCKER_COMPOSE_VER=v2.26.1
-REGISTRY_MIRROR=CN
+REGISTRY_MIRROR=US
 BASE=/opt/installpackage
 
 mkdir -p $BASE/down $BASE/bin /opt/kube/bin
