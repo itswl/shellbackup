@@ -97,6 +97,7 @@ data:
         Port 9200
         Logstash_Format On
         Retry_Limit False
+        Suppress_Type_Name On
     
 ---
 # Source: fluent-bit/templates/clusterrole.yaml
