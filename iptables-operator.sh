@@ -10,7 +10,7 @@ LOG_FILE="/var/log/iptables-operator.txt"
 CONFIG_MD5_FILE="$SCRIPT_DIRNAME/iptables-config.md5"
 
 # 默认使用的iptables表名，可以根据需要修改
-DEFAULT_TABLE="raw"
+DEFAULT_TABLE="mangle"
 
 CRON_REBOOT="@reboot /bin/bash $SCRIPT_PATH -m whitelist -a setup"
 CRON_MINUTE="* * * * * /bin/bash $SCRIPT_PATH  -m whitelist -a setup"
@@ -144,7 +144,6 @@ setup_network_rules() {
         if [ -z "${added_networks[$net]}" ]; then
             # 标记这个网络已经被处理
             added_networks[$net]=1
-            
             # 检查规则是否已存在
             if ! rule_exists "$table" "$chain" "-s $net -m comment --comment managed_by_iptables-operator -j RETURN"; then
                 iptables -t "$table" -I "$chain" -s "$net" -j RETURN -m comment --comment "managed_by_iptables-operator"
@@ -213,6 +212,15 @@ setup_whitelist_mode() {
     setup_chain "whitelist" "$DEFAULT_TABLE"
     setup_port_rules "whitelist" "$DEFAULT_TABLE" "$whitelist_ports" "RETURN"
     setup_network_rules "whitelist" "$DEFAULT_TABLE"
+    
+    # 添加已建立连接和相关连接的规则
+    if ! rule_exists "$DEFAULT_TABLE" "whitelist" "-m conntrack --ctstate RELATED,ESTABLISHED -m comment --comment managed_by_iptables-operator -j RETURN"; then
+        iptables -t "$DEFAULT_TABLE" -I whitelist 2 -m conntrack --ctstate RELATED,ESTABLISHED -j RETURN -m comment --comment "managed_by_iptables-operator"
+        echo "[INFO] 添加已建立连接规则: -m conntrack --ctstate RELATED,ESTABLISHED -j RETURN"
+    else
+        echo "[INFO] 已建立连接规则已存在，跳过添加"
+    fi
+    
     # 检查DROP规则是否存在，只有不存在时才添加
     if ! rule_exists "$DEFAULT_TABLE" "whitelist" "-m comment --comment managed_by_iptables-operator" "-j DROP"; then
         iptables -t "$DEFAULT_TABLE" -A whitelist -j DROP -m comment --comment "managed_by_iptables-operator"
