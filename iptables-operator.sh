@@ -9,7 +9,7 @@ CONFIG_FILE="$SCRIPT_DIRNAME/iptables_config.conf"
 LOG_FILE="/var/log/iptables-operator.txt"
 CONFIG_MD5_FILE="$SCRIPT_DIRNAME/iptables-config.md5"
 
-# 默认使用的iptables表名，可以根据需要修改
+# 默认使用的iptables表名，可以根据需要修改 raw 表只能用 -m restricted
 DEFAULT_TABLE="mangle"
 
 CRON_REBOOT="@reboot /bin/bash $SCRIPT_PATH -m whitelist -a setup"
@@ -28,7 +28,8 @@ echo "$CRONTAB_CONTENT" | grep -Fxq "$CRON_MINUTE" || {
     CRONTAB_CONTENT="$CRONTAB_CONTENT"$'\n'"$CRON_MINUTE"
     NEED_UPDATE=true
 }
-[ "$NEED_UPDATE" = true ] && echo "$CRONTAB_CONTENT" | crontab - && echo "[INFO] crontab 已更新"
+# 默认不开启crontab
+# [ "$NEED_UPDATE" = true ] && echo "$CRONTAB_CONTENT" | crontab - && echo "[INFO] crontab 已更新"
 
 # 开启输出到日志文件
 # log() {
